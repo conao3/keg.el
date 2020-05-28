@@ -82,9 +82,19 @@ If no found the Keg file, returns nil."
 
 ;;; Main
 
+(defvar keg-subcommands '(load-path))
+
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
   (keg-princ (keg-load-path)))
+
+(defun keg-main ()
+  "Init `keg' and exec subcommand."
+  (let ((op (intern (car command-line-args-left)))
+        (args (cdr command-line-args-left)))
+    (if (memq op keg-subcommands)
+        (apply (intern (format "keg-main-%s" op)) args)
+      (error "Subcommand `%s' is missing" op))))
 
 (provide 'keg)
 
