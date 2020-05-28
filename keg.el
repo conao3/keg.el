@@ -33,6 +33,41 @@
   :group 'convenience
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
+
+;;; Keg file
+
+(defun keg-file-dir ()
+  "Get directory path which Keg located search from `deafult-directory'.
+If no found the directory, returns nil."
+  (locate-dominating-file default-directory "Keg"))
+
+(defun keg-file-path ()
+  "Get file path to Keg file search from `deafult-directory'.
+If no found the directory, returns nil."
+  (let ((kegdir (keg-file-dir)))
+    (when kegdir (expand-file-name "Keg" kegdir))))
+
+(defun keg-file-read ()
+  "Return sexp from Keg file search from `deafult-directory'.
+If no found the Keg file, returns nil."
+  (let ((path (keg-file-path))
+        sources devdependencies packages)
+    (dolist (elm (read (with-temp-buffer
+                         (insert-file-contents path)
+                         (format "(%s)" (buffer-string)))))
+      (let ((op (car elm))
+            (args (cdr elm)))
+        (cond
+         ((eq 'sources op)
+          (dolist (elm args) (push elm sources)))
+         ((eq 'devdependencies op)
+          (dolist (elm args) (push elm devdependencies)))
+         ((eq 'package op)
+          (push args packages)))))
+    `((sources . ,(nreverse (delete-dups sources)))
+      (devs . ,(nreverse (delete-dups devdependencies)))
+      (packages . ,(nreverse (delete-dups packages))))))
+
 (provide 'keg)
 
 ;; Local Variables:
