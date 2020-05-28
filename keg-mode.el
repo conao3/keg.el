@@ -27,7 +27,27 @@
 
 ;;; Code:
 
+(defvar keg-mode-font-lock-keywords
+  `((,(regexp-opt
+       '("sources" "package" "devdependencies")
+       'symbols)
+     . font-lock-keyword-face)
+    (,(regexp-opt
+       '("gnu" "melpa-stable" "melpa" "org")
+       'symbols)
+     . font-lock-variable-name-face)
+    ;; Constant values.
+    (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
+     (0 font-lock-builtin-face))))
 
+;;;###autoload
+(define-derived-mode keg-mode prog-mode "Keg"
+  "Major mode for editing Keg files."
+  (lisp-mode-variables t nil t)
+  (setq font-lock-defaults '(keg-mode-font-lock-keywords)))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("/Keg\\'" . keg-mode))
 
 (provide 'keg-mode)
 ;;; keg-mode.el ends here
