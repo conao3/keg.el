@@ -72,7 +72,6 @@ at INDENT-POINT on STATE.  see original function `lisp-indent-function'."
               (method
                (funcall method indent-point state)))))))
 
-
 (defvar keg-mode-font-lock-keywords
   `((,(regexp-opt
        '("sources" "package" "devdependencies")
