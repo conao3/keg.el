@@ -103,7 +103,7 @@ If no found the Keg file, returns nil."
 
 ;;; Main
 
-(defvar keg-subcommands '(load-path help))
+(defvar keg-subcommands '(load-path help init))
 
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
@@ -118,6 +118,20 @@ Modern Elisp package development system
 
 SUBCOMMANDS:
 %s" (keg-help-string))))
+
+(defun keg-main-init ()
+  "Create Keg template file."
+  (when (file-exists-p "Keg")
+    (error "Keg file already exists.  Do nothing"))
+  (with-temp-file "Keg"
+    (insert "\
+(source gnu)
+(source melpa)
+
+(depends-on \"keg\")
+(depends-on \"leaf\")
+"))
+  (keg-princ "Successful create Keg file"))
 
 (defun keg-main ()
   "Init `keg' and exec subcommand."
