@@ -27,6 +27,52 @@
 
 ;;; Code:
 
+(require 'lisp-mode)
+
+(defvar calculate-lisp-indent-last-sexp) ; lisp-mode: L888
+(defun keg-indent-function (indent-point state)
+  "Indent calculation function for seml.
+at INDENT-POINT on STATE.  see original function `lisp-indent-function'."
+  (let ((normal-indent (current-column)))
+    (goto-char (1+ (elt state 1)))
+    (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
+    (if (and (elt state 2)
+             (not (looking-at "\\sw\\|\\s_")))
+        ;; car of form doesn't seem to be a symbol
+        (progn
+          (if (not (> (save-excursion (forward-line 1) (point))
+                      calculate-lisp-indent-last-sexp))
+              (progn (goto-char calculate-lisp-indent-last-sexp)
+                     (beginning-of-line)
+                     (parse-partial-sexp (point)
+                                         calculate-lisp-indent-last-sexp 0 t)))
+          ;; Indent under the list or under the first sexp on the same
+          ;; line as calculate-lisp-indent-last-sexp.  Note that first
+          ;; thing on that line has to be complete sexp since we are
+          ;; inside the innermost containing sexp.
+          (backward-prefix-chars)
+          (current-column))
+      (let ((function (buffer-substring (point)
+                                        (progn (forward-sexp 1) (point))))
+            method)
+        (setq method (or (function-get (intern-soft function)
+                                       'lisp-indent-function)
+                         (get (intern-soft function) 'lisp-indent-hook)))
+        (cond ((or (eq method 'defun)
+                   (and (null method)
+                        (> (length function) 3)
+                        (string-match "\\`def" function)))
+               (lisp-indent-defform state indent-point))
+              ((memq (intern-soft function) '(package))
+               (lisp-indent-specform 1 state
+                                     indent-point normal-indent))
+              ((integerp method)
+               (lisp-indent-specform method state
+                                     indent-point normal-indent))
+              (method
+               (funcall method indent-point state)))))))
+
+
 (defvar keg-mode-font-lock-keywords
   `((,(regexp-opt
        '("sources" "package" "devdependencies")
@@ -44,7 +90,8 @@
 (define-derived-mode keg-mode prog-mode "Keg"
   "Major mode for editing Keg files."
   (lisp-mode-variables t nil t)
-  (setq font-lock-defaults '(keg-mode-font-lock-keywords)))
+  (setq font-lock-defaults '(keg-mode-font-lock-keywords))
+  (setq lisp-indent-function 'keg-indent-function))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("/Keg\\'" . keg-mode))
