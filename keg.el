@@ -5,7 +5,7 @@
 ;; Author: Naoya Yamashita <conao3@gmail.com>
 ;; Version: 0.0.1
 ;; Keywords: convenience
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/conao3/keg.el
 
 ;; This program is free software: you can redistribute it and/or modify
