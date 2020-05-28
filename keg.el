@@ -51,7 +51,7 @@ If no found the directory, returns nil."
   "Return sexp from Keg file search from `deafult-directory'.
 If no found the Keg file, returns nil."
   (let ((path (keg-file-path))
-        sources devdependencies packages)
+        sources devs packages)
     (dolist (elm (read (with-temp-buffer
                          (insert-file-contents path)
                          (format "(%s)" (buffer-string)))))
@@ -60,12 +60,12 @@ If no found the Keg file, returns nil."
         (cond
          ((eq 'sources op)
           (dolist (elm args) (push elm sources)))
-         ((eq 'devdependencies op)
-          (dolist (elm args) (push elm devdependencies)))
+         ((eq 'dev-dependencies op)
+          (dolist (elm args) (push elm devs)))
          ((eq 'package op)
           (push args packages)))))
     `((sources . ,(nreverse (delete-dups sources)))
-      (devs . ,(nreverse (delete-dups devdependencies)))
+      (devs . ,(nreverse (delete-dups devs)))
       (packages . ,(nreverse (delete-dups packages))))))
 
 (provide 'keg)

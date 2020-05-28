@@ -6,4 +6,4 @@
 (package keg-mode
   ((recipe . (keg-mode :fetcher github :repo "conao3/keg.el" :files ("keg-mode.el")))))
 
-(devdependencies buttercup)
+(dev-dependencies buttercup)
