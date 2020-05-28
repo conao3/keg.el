@@ -79,14 +79,45 @@ If no found the Keg file, returns nil."
   "Return `load-path' in the form of PATH."
   (mapconcat #'identity (mapcar #'shell-quote-argument load-path) ":"))
 
+(defun keg-subcommands ()
+  "Return keg subcommands."
+  (let (res)
+    (mapatoms
+     (lambda (elm)
+       (when (and (fboundp elm)
+                  (string-prefix-p "keg-main-" (symbol-name elm)))
+         (push elm res))))
+    (sort res (lambda (a b) (string< (symbol-name a) (symbol-name b))))))
+
+(defun keg-help-string ()
+  "Return formated string for `keg-main-help'."
+  (mapconcat
+   (lambda (elm)
+     (format
+      " %s\n%s"
+      (replace-regexp-in-string "^keg-main-" "" (symbol-name elm))
+      (replace-regexp-in-string "^" "    " (documentation elm))))
+   (keg-subcommands)
+   "\n"))
+
 
 ;;; Main
 
-(defvar keg-subcommands '(load-path))
+(defvar keg-subcommands '(load-path help))
 
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
   (keg-princ (keg-load-path)))
+
+(defun keg-main-help ()
+  "Show this help."
+  (keg-princ
+   (format "USAGE: keg [SUBCOMMAND] [OPTIONS...]
+
+Modern Elisp package development system
+
+SUBCOMMANDS:
+%s" (keg-help-string))))
 
 (defun keg-main ()
   "Init `keg' and exec subcommand."
