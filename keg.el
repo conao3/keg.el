@@ -79,17 +79,8 @@ If no found the Keg file, returns nil."
   "Return `load-path' in the form of PATH."
   (mapconcat #'identity (mapcar #'shell-quote-argument load-path) ":"))
 
-(defun keg-process-environment ()
-  "Return environment variable as `process-environment' format."
-  (cons (format "EMACSLOADPATH=%s" (keg-load-path)) process-environment))
-
 
 ;;; Main
-
-(defun keg-main-exec (command)
-  "Execute the system COMMAND with a proper $PATH and $EMACSLOADPATH."
-  (let ((process-environment (keg-process-environment)))
-    (shell-command (mapconcat #'shell-quote-argument command " "))))
 
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
