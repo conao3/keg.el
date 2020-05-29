@@ -103,7 +103,7 @@ If no found the Keg file, returns nil."
 
 ;;; Main
 
-(defvar keg-subcommands '(help init load-path))
+(defvar keg-subcommands '(help version init load-path))
 
 (defun keg-main-help ()
   "Show this help."
@@ -114,6 +114,15 @@ Modern Elisp package development system
 
 SUBCOMMANDS:
 %s" (keg-help-string))))
+
+(defun keg-main-version ()
+  "Show `keg' version."
+  (keg-princ
+   (format "Keg %s"
+           (eval-when-compile
+             (require 'lisp-mnt)
+             (lm-version (or load-file-name
+                             byte-compile-current-file))))))
 
 (defun keg-main-init ()
   "Create Keg template file."
