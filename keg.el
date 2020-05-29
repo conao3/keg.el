@@ -340,6 +340,10 @@ SUBCOMMANDS:")
     (while t                            ; wait acync process
       (accept-process-output proc 0 100))))
 
+(defun keg-main-emacs (&rest args)
+  "Exec Emacs with ARGS."
+  (apply #'keg-main-exec "emacs" args))
+
 (defun keg-main-info ()
   "Show this package information."
   (keg--princ "Keg file parsed")
