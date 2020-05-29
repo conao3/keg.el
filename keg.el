@@ -351,8 +351,7 @@ SUBCOMMANDS:")
         (args (cdr command-line-args-left)))
     (cond
      ((eq nil op)
-      (keg-main-help)
-      (kill-emacs 1))
+      (keg-main-install))
      ((memq (intern op) (keg-subcommands))
       (apply (intern (format "keg-main-%s" op)) args))
      (t
