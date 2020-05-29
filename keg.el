@@ -76,6 +76,10 @@ If no found the Keg file, returns nil."
   "Do `princ' ARG with \n."
   (princ (format "%s\n" arg)))
 
+(defun keg--indent (width str)
+  "Add indent of WIDTH for STR each lines."
+  (replace-regexp-in-string "^" (make-string width ?\s) str))
+
 (defun keg-load-path ()
   "Return `load-path' in the form of PATH."
   (mapconcat #'identity (mapcar #'shell-quote-argument load-path) ":"))
@@ -107,9 +111,7 @@ SUBCOMMANDS:")
       (format
        " %s\n%s"
        elm
-       (replace-regexp-in-string
-        "^" "    "
-        (documentation (intern (format "keg-main-%s" elm))))))
+       (keg--indent 5 (documentation (intern (format "keg-main-%s" elm))))))
     (keg-subcommands)
     "\n")))
 
