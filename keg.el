@@ -103,11 +103,7 @@ If no found the Keg file, returns nil."
 
 ;;; Main
 
-(defvar keg-subcommands '(load-path help init))
-
-(defun keg-main-load-path ()
-  "Return `load-path' in the form of PATH."
-  (keg-princ (keg-load-path)))
+(defvar keg-subcommands '(help init load-path))
 
 (defun keg-main-help ()
   "Show this help."
@@ -132,6 +128,10 @@ SUBCOMMANDS:
 (depends-on \"leaf\")
 "))
   (keg-princ "Successful creating Keg file"))
+
+(defun keg-main-load-path ()
+  "Return `load-path' in the form of PATH."
+  (keg-princ (keg-load-path)))
 
 (defun keg-main ()
   "Init `keg' and exec subcommand."
