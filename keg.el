@@ -243,10 +243,6 @@ This function is `alist-get' polifill for Emacs < 25.1."
              (assoc key alist testfn))))
     (if x (cdr x) default)))
 
-(defun keg-load-path ()
-  "Return `load-path' in the form of PATH."
-  (mapconcat #'identity (mapcar #'shell-quote-argument load-path) ":"))
-
 (defun keg-subcommands ()
   "Return keg subcommands."
   (let (res)
@@ -333,7 +329,7 @@ SUBCOMMANDS:")
 
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
-  (keg--princ (keg-load-path)))
+  (keg--princ (mapconcat #'identity (mapcar #'shell-quote-argument load-path) ":")))
 
 (defun keg-main-debug ()
   "Show debug information."
