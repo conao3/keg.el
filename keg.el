@@ -225,7 +225,7 @@ See `package-install'."
 
 (defun keg--princ (&optional str &rest args)
   "Do `princ' STR with format ARGS and put \n."
-  (when str (princ (apply #'format str args)))
+  (when str (princ (string-trim (apply #'format str args) "[\n\r]+" "[ \n\r]+")))
   (princ "\n"))
 
 (defun keg--indent (width str)
