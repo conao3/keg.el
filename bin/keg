@@ -19,9 +19,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (setq package-archives
-      '(("celpa" . "https://celpa.conao3.com/packages/")
-        ("melpa" . "https://melpa.org/packages/")
-        ("gnu" . "https://elpa.gnu.org/packages/")))
+      '(("celpa" . "https://celpa.conao3.com/packages/")))
 (package-initialize)
 (unless (package-installed-p 'keg)
   (package-refresh-contents)
