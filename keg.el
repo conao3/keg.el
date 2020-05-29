@@ -72,9 +72,10 @@ If no found the Keg file, returns nil."
 
 ;;; Functions
 
-(defun keg--princ (arg)
-  "Do `princ' ARG with \n."
-  (princ (format "%s\n" arg)))
+(defun keg--princ (&optional str &rest args)
+  "Do `princ' STR with format ARGS and put \n."
+  (when str (princ (apply #'format str args)))
+  (princ "\n"))
 
 (defun keg--indent (width str)
   "Add indent of WIDTH for STR each lines."
@@ -147,7 +148,7 @@ SUBCOMMANDS:")
   "Show debug information."
   (keg--princ " Keg file")
   (keg--princ (keg--indent 5 (keg-file-path)))
-  (keg--princ "")
+  (keg--princ)
   (keg--princ " Keg file parsed")
   (keg--princ (keg--indent 5 (pp-to-string (keg-file-read)))))
 
@@ -167,7 +168,7 @@ SUBCOMMANDS:")
       (apply (intern (format "keg-main-%s" op)) args))
      (t
       (keg--princ (format "Subcommand `%s' is missing" op))
-      (keg--princ "")
+      (keg--princ)
       (keg-main-help)
       (kill-emacs 1)))))
 
