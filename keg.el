@@ -205,7 +205,8 @@ Return value is below form:
 See `package-install'."
   (let ((package-user-dir (expand-file-name ".keg"))
         (package-archives (keg-build--package-archives))
-        (reqs-info (keg-build--get-dependency-from-keg-file)))
+        (reqs-info (keg-build--get-dependency-from-keg-file))
+        transaction)
     (require 'package)
     (package-initialize)
     (dolist (info reqs-info)
@@ -213,11 +214,14 @@ See `package-install'."
             (reqs (cdr info)))
         (condition-case _err
             (package-download-transaction
-             (package-compute-transaction nil reqs))
+             (setq transaction (package-compute-transaction nil reqs)))
           (error                     ; refresh and retry if error
            (package-refresh-contents)
            (package-download-transaction
-            (package-compute-transaction nil reqs))))))))
+            (setq transaction (package-compute-transaction nil reqs)))))))
+    (unless transaction
+      (keg--princ)
+      (keg--princ "All dependencies already satisfied"))))
 
 
 ;;; Functions
