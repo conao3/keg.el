@@ -73,6 +73,10 @@ If no found the Keg file, returns nil."
         (devs . ,(nreverse (delete-dups devs)))
         (packages . ,(nreverse (delete-dups packages)))))))
 
+(defun keg-file-read-section (section)
+  "Return SECTION value from Keg file."
+  (keg--alist-get section (keg-file-read)))
+
 
 ;;; Resolve dependencies
 
@@ -172,10 +176,9 @@ Return value is below form:
   <req>     := (<req-pkg> <req-ver>)
   <req-pkg> := SYMBOL
   <req-ver> := LIST                   ; like `version-to-list'"
-  (let* ((alist (keg-file-read))
-         (devs (keg--alist-get 'devs alist))
+  (let* ((devs (keg-file-read-section 'devs))
          ret)
-    (dolist (package (keg--alist-get 'packages alist))
+    (dolist (package (keg-file-read-section 'packages))
       (let* ((name (car package))
              (_args (cdr package))
              (main-file (format "%s.el" name)))
@@ -291,7 +294,7 @@ SUBCOMMANDS:")
   "Show debug information."
   (keg--princ "Keg debug information")
   (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
-    (dolist (info (keg--alist-get 'packages (keg-file-read)))
+    (dolist (info (keg-file-read-section 'packages))
       (let* ((name (car info))
              (alist (cdr info))
              (reqs (keg--alist-get name reqinfo)))
