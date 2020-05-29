@@ -203,11 +203,9 @@ Return value is below form:
 (defun keg-build--resolve-dependency ()
   "Fetch dependency in .keg folder.
 See `package-install'."
-  (let ((package-user-dir (expand-file-name ".keg"))
-        (package-archives (keg-build--package-archives))
+  (let ((package-archives (keg-build--package-archives))
         (reqs-info (keg-build--get-dependency-from-keg-file))
         transaction)
-    (package-initialize)
     (dolist (info reqs-info)
       (let ((_name (car info))
             (reqs (cdr info)))
@@ -367,8 +365,13 @@ SUBCOMMANDS:")
 
 (defun keg-main ()
   "Init `keg' and exec subcommand."
-  (let ((op (car command-line-args-left))
-        (args (cdr command-line-args-left)))
+  (let* ((op (car command-line-args-left))
+         (args (cdr command-line-args-left))
+         (user-emacs-directory
+          (expand-file-name (format ".keg/%s" emacs-version)))
+         (package-user-dir (locate-user-emacs-file "elpa")))
+    (make-directory user-emacs-directory 'parent)
+    (package-initialize)
     (cond
      ((eq nil op)
       (keg-main-install))
