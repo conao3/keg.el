@@ -302,6 +302,27 @@ SUBCOMMANDS:")
 
 (defun keg-main-install ()
   "Install dependencies in .keg folder."
+  (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
+    (dolist (info (keg-file-read-section 'packages))
+      (let* ((name (car info))
+             (_alist (cdr info))
+             (reqs (keg--alist-get name reqinfo)))
+        (keg--princ (format " Package: %s" name))
+        (keg--princ (format " Dependency: %s"
+                            (mapcar
+                             (lambda (elm)
+                               (let ((pkg (car elm))
+                                     (ver (cadr elm)))
+                                 `(,pkg ,(package-version-join ver))))
+                             reqs)))
+        (keg--princ)))
+    (keg--princ (format " DevDependency: %s"
+                        (mapcar
+                         (lambda (elm)
+                           (let ((pkg (car elm))
+                                 (ver (cadr elm)))
+                             `(,pkg ,(package-version-join ver))))
+                         (keg--alist-get 'keg--devs reqinfo)))))
   (keg-build--resolve-dependency))
 
 (defun keg-main-info ()
