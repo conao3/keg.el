@@ -253,10 +253,11 @@ SUBCOMMANDS:")
 (defun keg-main-version ()
   "Show `keg' version."
   (keg--princ
-   (format "Keg %s"
+   (format "Keg %s running on Emacs %s"
            (eval-when-compile
              (lm-version (or load-file-name
-                             byte-compile-current-file))))))
+                             byte-compile-current-file)))
+           emacs-version)))
 
 (defun keg-main-init ()
   "Create Keg template file."
