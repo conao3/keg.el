@@ -186,11 +186,25 @@ Return value is below form:
     (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm ,(version-to-list "0.0.1"))) devs)) ret)
     (nreverse ret)))
 
+(defun keg-build--package-archives ()
+  "Return appropriate `packages-archives' using Keg sources value."
+  (let ((urls '((gnu . "https://elpa.gnu.org/packages/")
+                (org . "https://orgmode.org/elpa/")
+                (melpa . "https://melpa.org/packages/")
+                (celpa . "https://celpa.conao3.com/packages/"))))
+    (mapcar
+     (lambda (elm)
+       (let ((url (keg--alist-get elm urls)))
+         (if (not url)
+             (error "Source %s is unknown" elm)
+           `(,(symbol-name elm) . ,url))))
+     (keg-file-read-section 'sources))))
+
 (defun keg-build--resolve-dependency ()
   "Fetch dependency in .keg folder.
 See `package-install'."
   (let ((package-user-dir (expand-file-name ".keg"))
-        (package-archives package-archives)
+        (package-archives (keg-build--package-archives))
         (reqs-info (keg-build--get-dependency-from-keg-file)))
     (require 'package)
     (package-initialize)
