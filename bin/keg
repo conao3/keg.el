@@ -19,5 +19,5 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (let ((inhibit-message t))
-  (load (expand-file-name "../keg")))
+  (load (expand-file-name "../keg" (file-name-directory load-file-name))))
 (keg-main)
