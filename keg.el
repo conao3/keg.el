@@ -55,7 +55,7 @@ If no found the directory, returns nil."
   "Return sexp from Keg file search from `deafult-directory'.
 If no found the Keg file, returns nil."
   (let ((path (keg-file-path))
-        sources devs packages)
+        sources devs packages lint-disables)
     (when path
       (dolist (elm (read (with-temp-buffer
                            (insert-file-contents path)
@@ -63,15 +63,18 @@ If no found the Keg file, returns nil."
         (let ((op (car elm))
               (args (cdr elm)))
           (cond
-           ((eq 'sources op)
+           ((eq 'source op)
             (dolist (elm args) (push elm sources)))
-           ((eq 'dev-dependencies op)
+           ((eq 'dev-dependency op)
             (dolist (elm args) (push elm devs)))
            ((eq 'package op)
-            (push args packages)))))
+            (dolist (elm args) (push elm packages)))
+           ((eq 'lint-disable op)
+            (dolist (elm args) (push elm lint-disables))))))
       `((sources . ,(nreverse (delete-dups sources)))
         (devs . ,(nreverse (delete-dups devs)))
-        (packages . ,(nreverse (delete-dups packages)))))))
+        (packages . ,(nreverse (delete-dups packages)))
+        (lint-disables . ,(nreverse (delete-dups lint-disables)))))))
 
 (defun keg-file-read-section (section)
   "Return SECTION value from Keg file."
