@@ -322,6 +322,24 @@ SUBCOMMANDS:")
                          (keg--alist-get 'keg--devs reqinfo)))))
   (keg-build--resolve-dependency))
 
+(defun keg-main-exec (&rest command)
+  "Exec COMMAND."
+  (keg--princ "Exec command: %s" (string-join command " "))
+  (let ((proc (apply #'start-process
+                     "keg"
+                     (get-buffer-create "*keg*")
+                     (car command) (cdr command))))
+    (set-process-filter
+     proc
+     (lambda (_proc str)
+       (princ str)))
+    (set-process-sentinel
+     proc
+     (lambda (proc _event)
+       (kill-emacs (process-exit-status proc))))
+    (while t                            ; wait acync process
+      (accept-process-output proc 0 100))))
+
 (defun keg-main-info ()
   "Show this package information."
   (keg--princ "Keg file parsed")
