@@ -136,11 +136,16 @@ SUBCOMMANDS:
 ;;;###autoload
 (defun keg-main ()
   "Init `keg' and exec subcommand."
-  (let ((op (intern (car command-line-args-left)))
+  (let ((op (car command-line-args-left))
         (args (cdr command-line-args-left)))
-    (if (memq op keg-subcommands)
-        (apply (intern (format "keg-main-%s" op)) args)
-      (error "Subcommand `%s' is missing" op))))
+    (cond
+     ((eq nil op)
+      (keg-main-help)
+      (kill-emacs 1))
+     ((memq (intern op) keg-subcommands)
+      (apply (intern (format "keg-main-%s" op)) args))
+     (t
+      (error "Subcommand `%s' is missing" op)))))
 
 (provide 'keg)
 
