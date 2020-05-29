@@ -207,7 +207,6 @@ See `package-install'."
         (package-archives (keg-build--package-archives))
         (reqs-info (keg-build--get-dependency-from-keg-file))
         transaction)
-    (require 'package)
     (package-initialize)
     (dolist (info reqs-info)
       (let ((_name (car info))
