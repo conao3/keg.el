@@ -211,8 +211,13 @@ See `package-install'."
     (dolist (info reqs-info)
       (let ((_name (car info))
             (reqs (cdr info)))
-        (package-download-transaction
-         (package-compute-transaction nil reqs))))))
+        (condition-case _err
+            (package-download-transaction
+             (package-compute-transaction nil reqs))
+          (error                     ; refresh and retry if error
+           (package-refresh-contents)
+           (package-download-transaction
+            (package-compute-transaction nil reqs))))))))
 
 
 ;;; Functions
