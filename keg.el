@@ -306,20 +306,20 @@ SUBCOMMANDS:")
 
 (defun keg-main-install ()
   "Install dependencies in .keg folder."
+  (keg--princ "Install dependencies")
   (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
     (dolist (info (keg-file-read-section 'packages))
       (let* ((name (car info))
              (_alist (cdr info))
              (reqs (keg--alist-get name reqinfo)))
         (keg--princ (format " Package: %s" name))
-        (keg--princ (format " Dependency: %s"
+        (keg--princ (format "     Dependency: %s"
                             (mapcar
                              (lambda (elm)
                                (let ((pkg (car elm))
                                      (ver (cadr elm)))
                                  `(,pkg ,(package-version-join ver))))
-                             reqs)))
-        (keg--princ)))
+                             reqs)))))
     (keg--princ (format " DevDependency: %s"
                         (mapcar
                          (lambda (elm)
@@ -343,15 +343,14 @@ SUBCOMMANDS:")
              (alist (cdr info))
              (reqs (keg--alist-get name reqinfo)))
         (keg--princ (format " Package: %s" name))
-        (keg--princ (format " Recipe: %s" (keg--alist-get 'recipe alist)))
-        (keg--princ (format " Dependency: %s"
+        (keg--princ (format "     Recipe: %s" (keg--alist-get 'recipe alist)))
+        (keg--princ (format "     Dependency: %s"
                             (mapcar
                              (lambda (elm)
                                (let ((pkg (car elm))
                                      (ver (cadr elm)))
                                  `(,pkg ,(package-version-join ver))))
-                             reqs)))
-        (keg--princ)))
+                             reqs)))))
     (keg--princ (format " DevDependency: %s"
                         (mapcar
                          (lambda (elm)
@@ -359,10 +358,7 @@ SUBCOMMANDS:")
                                  (ver (cadr elm)))
                              `(,pkg ,(package-version-join ver))))
                          (keg--alist-get 'keg--devs reqinfo)))))
-  (keg--princ)
-  (keg--princ " Keg file")
-  (keg--princ (keg--indent 5 (keg-file-path)))
-  (keg--princ)
+  (keg--princ " Keg file: %s" (keg-file-path))
   (keg--princ " Keg file parsed")
   (keg--princ (keg--indent 5 (pp-to-string (keg-file-read)))))
 
