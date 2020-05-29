@@ -133,7 +133,6 @@ SUBCOMMANDS:
 "))
   (keg-princ "Successful create Keg file"))
 
-;;;###autoload
 (defun keg-main ()
   "Init `keg' and exec subcommand."
   (let ((op (car command-line-args-left))
