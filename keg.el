@@ -131,7 +131,7 @@ SUBCOMMANDS:
 (depends-on \"keg\")
 (depends-on \"leaf\")
 "))
-  (keg-princ "Successful create Keg file"))
+  (keg-princ "Successful creating Keg file"))
 
 (defun keg-main ()
   "Init `keg' and exec subcommand."
