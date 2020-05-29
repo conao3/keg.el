@@ -140,6 +140,11 @@ SUBCOMMANDS:")
   (keg--princ "Keg file parsed")
   (keg--princ (pp-to-string (keg-file-read))))
 
+(defun keg-main-debug ()
+  "Show debug information."
+  (keg--princ "Keg file parsed")
+  (keg--princ (pp-to-string (keg-file-read))))
+
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
   (keg--princ (keg-load-path)))
