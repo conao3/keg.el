@@ -145,10 +145,11 @@ SUBCOMMANDS:")
 
 (defun keg-main-debug ()
   "Show debug information."
-  (keg--princ "Keg file")
-  (keg--princ (keg-file-path))
-  (keg--princ "Keg file parsed")
-  (keg--princ (pp-to-string (keg-file-read))))
+  (keg--princ " Keg file")
+  (keg--princ (keg--indent 5 (keg-file-path)))
+  (keg--princ "")
+  (keg--princ " Keg file parsed")
+  (keg--princ (keg--indent 5 (pp-to-string (keg-file-read)))))
 
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
