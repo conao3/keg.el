@@ -89,31 +89,28 @@ If no found the Keg file, returns nil."
          (push (intern (replace-regexp-in-string "^keg-main-" "" (symbol-name elm))) res))))
     (sort res (lambda (a b) (string< (symbol-name a) (symbol-name b))))))
 
-(defun keg-help-string ()
-  "Return formated string for `keg-main-help'."
-  (mapconcat
-   (lambda (elm)
-     (format
-      " %s\n%s"
-      elm
-      (replace-regexp-in-string
-       "^" "    "
-       (documentation (intern (format "keg-main-%s" elm))))))
-   (keg-subcommands)
-   "\n"))
-
 
 ;;; Main
 
 (defun keg-main-help ()
   "Show this help."
   (keg-princ
-   (format "USAGE: keg [SUBCOMMAND] [OPTIONS...]
+   "USAGE: keg [SUBCOMMAND] [OPTIONS...]
 
 Modern Elisp package development system
 
-SUBCOMMANDS:
-%s" (keg-help-string))))
+SUBCOMMANDS:")
+  (keg-princ
+   (mapconcat
+    (lambda (elm)
+      (format
+       " %s\n%s"
+       elm
+       (replace-regexp-in-string
+        "^" "    "
+        (documentation (intern (format "keg-main-%s" elm))))))
+    (keg-subcommands)
+    "\n")))
 
 (defun keg-main-version ()
   "Show `keg' version."
