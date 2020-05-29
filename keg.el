@@ -71,7 +71,7 @@ If no found the Keg file, returns nil."
 
 ;;; Functions
 
-(defun keg-princ (arg)
+(defun keg--princ (arg)
   "Do `princ' ARG with \n."
   (princ (format "%s\n" arg)))
 
@@ -94,13 +94,13 @@ If no found the Keg file, returns nil."
 
 (defun keg-main-help ()
   "Show this help."
-  (keg-princ
+  (keg--princ
    "USAGE: keg [SUBCOMMAND] [OPTIONS...]
 
 Modern Elisp package development system
 
 SUBCOMMANDS:")
-  (keg-princ
+  (keg--princ
    (mapconcat
     (lambda (elm)
       (format
@@ -114,7 +114,7 @@ SUBCOMMANDS:")
 
 (defun keg-main-version ()
   "Show `keg' version."
-  (keg-princ
+  (keg--princ
    (format "Keg %s"
            (eval-when-compile
              (require 'lisp-mnt)
@@ -133,11 +133,11 @@ SUBCOMMANDS:")
 (depends-on \"keg\")
 (depends-on \"leaf\")
 "))
-  (keg-princ "Successful creating Keg file"))
+  (keg--princ "Successful creating Keg file"))
 
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
-  (keg-princ (keg-load-path)))
+  (keg--princ (keg-load-path)))
 
 (defun keg-main ()
   "Init `keg' and exec subcommand."
@@ -150,8 +150,8 @@ SUBCOMMANDS:")
      ((memq (intern op) (keg-subcommands))
       (apply (intern (format "keg-main-%s" op)) args))
      (t
-      (keg-princ (format "Subcommand `%s' is missing" op))
-      (keg-princ "")
+      (keg--princ (format "Subcommand `%s' is missing" op))
+      (keg--princ "")
       (keg-main-help)
       (kill-emacs 1)))))
 
