@@ -272,6 +272,20 @@ This function is `alist-get' polifill for Emacs < 25.1."
   "Return `process-environment' for keg."
   (cons (format "EMACSLOADPATH=%s" (keg-load-path)) process-environment))
 
+(defun keg-start-process (&rest command)
+  "Exec COMMAND and return process object."
+  (let* ((process-environment (keg-process-environment))
+         (proc (start-process-shell-command
+                "keg"
+                (get-buffer-create "*keg*")
+                (string-join command " "))))
+    (set-process-filter
+     proc
+     (lambda (_proc str)
+       ;; (princ str #'external-debugging-output)
+       (princ str)))
+    proc))
+
 
 ;;; Main
 
@@ -344,16 +358,7 @@ SUBCOMMANDS:")
 (defun keg-main-exec (&rest command)
   "Exec COMMAND."
   (keg--princ "Exec command: %s" (string-join command " "))
-  (let* ((process-environment (keg-process-environment))
-         (proc (start-process-shell-command
-                "keg"
-                (get-buffer-create "*keg*")
-                (string-join command " "))))
-    (set-process-filter
-     proc
-     (lambda (_proc str)
-       ;; (princ str #'external-debugging-output)
-       (princ str)))
+  (let ((proc (keg-start-process (string-join command " "))))
     (set-process-sentinel
      proc
      (lambda (proc _event)
