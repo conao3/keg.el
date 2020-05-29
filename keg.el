@@ -28,6 +28,10 @@
 
 ;;; Code:
 
+(require 'lisp-mnt)
+(require 'subr-x)
+(require 'package)
+
 (defgroup keg nil
   "Modern Elisp package development system."
   :group 'convenience
@@ -68,6 +72,125 @@ If no found the Keg file, returns nil."
       `((sources . ,(nreverse (delete-dups sources)))
         (devs . ,(nreverse (delete-dups devs)))
         (packages . ,(nreverse (delete-dups packages)))))))
+
+
+;;; Resolve dependencies
+
+(defconst keg-build-default-files-spec
+  '("*.el" "*.el.in" "dir"
+    "*.info" "*.texi" "*.texinfo"
+    "doc/dir" "doc/*.info" "doc/*.texi" "doc/*.texinfo"
+    (:exclude ".dir-locals.el" "test.el" "tests.el" "*-test.el" "*-tests.el"))
+  "Default value for :files attribute in recipes.
+
+See `package-build-default-files-spec' from MELPA package-build.")
+
+(defun keg-build--expand-file-specs (dir specs &optional subdir allow-empty)
+  "In DIR, expand SPECS, optionally under SUBDIR.
+The result is a list of (SOURCE . DEST), where SOURCE is a source
+file path and DEST is the relative path to which it should be copied.
+
+If the resulting list is empty, an error will be reported.  Pass t
+for ALLOW-EMPTY to prevent this error.
+
+See `package-build-expand-file-specs' from MELPA package-build."
+  (let ((default-directory dir)
+        (prefix (if subdir (format "%s/" subdir) ""))
+        (lst))
+    (dolist (entry specs lst)
+      (setq lst
+            (if (consp entry)
+                (if (eq :exclude (car entry))
+                    (cl-nset-difference lst
+                                        (keg-build--expand-file-specs
+                                         dir (cdr entry) nil t)
+                                        :key 'car
+                                        :test 'equal)
+                  (nconc lst
+                         (keg-build--expand-file-specs
+                          dir
+                          (cdr entry)
+                          (concat prefix (car entry))
+                          t)))
+              (nconc
+               lst (mapcar (lambda (f)
+                             (cons f
+                                   (concat prefix
+                                           (replace-regexp-in-string
+                                            "\\.el\\.in\\'"
+                                            ".el"
+                                            (file-name-nondirectory f)))))
+                           (file-expand-wildcards entry))))))
+    (when (and (null lst) (not allow-empty))
+      (error "No matching file(s) found in %s: %s" dir specs))
+    lst))
+
+(defun keg-build--config-file-list (recipe)
+  "Build full source file specification from RECIPE.
+See `package-build--config-file-list' from MELPA package-build."
+  (let ((file-list (plist-get (cdr recipe) :files)))
+    (cond
+     ((null file-list)
+      keg-build-default-files-spec)
+     ((eq :defaults (car file-list))
+      (append keg-build-default-files-spec (cdr file-list)))
+     (t
+      file-list))))
+
+(defun keg-build--expand-source-file-list (recipe dir)
+  "Resolve source file from RECIPE in DIR.
+See `package-build--expand-source-file-list' from MELPA package-build."
+  (mapcar 'car
+          (keg-build--expand-file-specs
+           dir
+           (keg-build--config-file-list recipe))))
+
+(defun keg-build--get-dependency-from-elisp-file (file)
+  "Get package dependency from Package-Require header from FILE.
+Duplicate requires are resolved by more restrictive."
+  (if (not (file-readable-p file))
+      (warn "File %s is missing")
+    (let ((reqs-str (lm-with-file file
+                      (lm-header "package-requires"))))
+      (when reqs-str
+        (mapcar
+         (lambda (elm)
+           (let ((req (car elm))
+                 (ver (cadr elm)))
+             `(,req ,(version-to-list ver))))
+         (read reqs-str))))))
+
+(defun keg-build--get-dependency-from-keg-file ()
+  "Get development package dependency from Keg located DIR for PKG.
+Currently, ignore any args for development.
+
+Return value is below form:
+  <result>  := (<pkg-req>* <dev-req>)
+  <pkg-req> := (<pkg> . (<req>*))
+  <dev-req> := (keg--devs . (<req>*))
+  <pkg>     := SYMBOL
+  <req>     := (<req-pkg> <req-ver>)
+  <req-pkg> := SYMBOL
+  <req-ver> := LIST                   ; like `version-to-list'"
+  (let* ((alist (keg-file-read))
+         (devs (keg--alist-get 'devs alist))
+         ret)
+    (dolist (package (keg--alist-get 'packages alist))
+      (let* ((name (car package))
+             (_args (cdr package))
+             (main-file (format "%s.el" name)))
+        (push `(,name . ,(keg-build--get-dependency-from-elisp-file main-file)) ret)))
+    (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm ,(version-to-list "0.0.1"))) devs)) ret)
+    (nreverse ret)))
+
+(defun keg-build--resolve-dependency ()
+  "Fetch dependency in .keg folder.
+See `package-install'."
+  (let ((package-user-dir (expand-file-name ".keg"))
+        (package-archives package-archives))
+    (require 'package)
+    (package-initialize)
+    (package-download-transaction (package-compute-transaction nil '((ac-capf (20200000 0 1)))))))
 
 
 ;;; Functions
@@ -132,7 +255,6 @@ SUBCOMMANDS:")
   (keg--princ
    (format "Keg %s"
            (eval-when-compile
-             (require 'lisp-mnt)
              (lm-version (or load-file-name
                              byte-compile-current-file))))))
 
@@ -158,12 +280,29 @@ SUBCOMMANDS:")
 (defun keg-main-debug ()
   "Show debug information."
   (keg--princ "Keg debug information")
-  (dolist (info (keg--alist-get 'packages (keg-file-read)))
-    (let ((name (car info))
-          (alist (cdr info)))
-      (keg--princ (format " Package: %s" name))
-      (keg--princ (format " Recipe: %s" (keg--alist-get 'recipe alist)))
-      (keg--princ)))
+  (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
+    (dolist (info (keg--alist-get 'packages (keg-file-read)))
+      (let* ((name (car info))
+             (alist (cdr info))
+             (reqs (keg--alist-get name reqinfo)))
+        (keg--princ (format " Package: %s" name))
+        (keg--princ (format " Recipe: %s" (keg--alist-get 'recipe alist)))
+        (keg--princ (format " Dependency: %s"
+                            (mapcar
+                             (lambda (elm)
+                               (let ((pkg (car elm))
+                                     (ver (cadr elm)))
+                                 `(,pkg ,(package-version-join ver))))
+                             reqs)))
+        (keg--princ)))
+    (keg--princ (format " DevDependency: %s"
+                        (mapcar
+                         (lambda (elm)
+                           (let ((pkg (car elm))
+                                 (ver (cadr elm)))
+                             `(,pkg ,(package-version-join ver))))
+                         (keg--alist-get 'keg--devs reqinfo)))))
+  (keg--princ)
   (keg--princ " Keg file")
   (keg--princ (keg--indent 5 (keg-file-path)))
   (keg--princ)
