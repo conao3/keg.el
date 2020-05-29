@@ -81,6 +81,17 @@ If no found the Keg file, returns nil."
   "Add indent of WIDTH for STR each lines."
   (replace-regexp-in-string "^" (make-string width ?\s) str))
 
+(defun keg--alist-get (key alist &optional default _remove testfn)
+  "Find the first element of ALIST whose `car' equals KEY and return its `cdr'.
+If KEY is not found in ALIST, return DEFAULT.
+Equality with KEY is tested by TESTFN, defaulting to `eq'.
+
+This function is `alist-get' polifill for Emacs < 25.1."
+  (let ((x (if (not testfn)
+               (assq key alist)
+             (assoc key alist testfn))))
+    (if x (cdr x) default)))
+
 (defun keg-load-path ()
   "Return `load-path' in the form of PATH."
   (mapconcat #'identity (mapcar #'shell-quote-argument load-path) ":"))
@@ -146,6 +157,13 @@ SUBCOMMANDS:")
 
 (defun keg-main-debug ()
   "Show debug information."
+  (keg--princ "Keg debug information")
+  (dolist (info (keg--alist-get 'packages (keg-file-read)))
+    (let ((name (car info))
+          (alist (cdr info)))
+      (keg--princ (format " Package: %s" name))
+      (keg--princ (format " Recipe: %s" (keg--alist-get 'recipe alist)))
+      (keg--princ)))
   (keg--princ " Keg file")
   (keg--princ (keg--indent 5 (keg-file-path)))
   (keg--princ)
