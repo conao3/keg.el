@@ -186,8 +186,9 @@ Return value is below form:
     (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm ,(version-to-list "0.0.1"))) devs)) ret)
     (nreverse ret)))
 
-(defun keg-build--package-archives ()
-  "Return appropriate `packages-archives' using Keg sources value."
+(defun keg-build--package-archives (&optional syms)
+  "Return appropriate `packages-archives' using Keg sources value.
+If SYMS is omitted, assume ELPA symbol from reading Keg file."
   (let ((urls '((gnu . "https://elpa.gnu.org/packages/")
                 (org . "https://orgmode.org/elpa/")
                 (melpa . "https://melpa.org/packages/")
@@ -198,7 +199,7 @@ Return value is below form:
          (if (not url)
              (error "Source %s is unknown" elm)
            `(,(symbol-name elm) . ,url))))
-     (keg-file-read-section 'sources))))
+     (or syms (keg-file-read-section 'sources)))))
 
 (defun keg-build--resolve-dependency ()
   "Fetch dependency in .keg folder.
@@ -245,11 +246,13 @@ This function is `alist-get' polifill for Emacs < 25.1."
 
 (defun keg-install-package (pkg)
   "Install PKG in .keg folder."
-  (condition-case _err
-      (package-install pkg)
-    (error
-     (package-refresh-contents)
-     (package-install pkg))))
+  (let ((package-archives (keg-build--package-archives '(gnu melpa))))
+    (unless (package-installed-p pkg)
+      (condition-case _err
+          (package-install pkg)
+        (error
+         (package-refresh-contents)
+         (package-install pkg))))))
 
 (defun keg-subcommands ()
   "Return keg subcommands."
@@ -260,6 +263,14 @@ This function is `alist-get' polifill for Emacs < 25.1."
                   (string-prefix-p "keg-main-" (symbol-name elm)))
          (push (intern (replace-regexp-in-string "^keg-main-" "" (symbol-name elm))) res))))
     (sort res (lambda (a b) (string< (symbol-name a) (symbol-name b))))))
+
+(defun keg-load-path ()
+  "Return keg `load-path' same format as PATH."
+  (string-join (mapcar #'shell-quote-argument load-path) ":"))
+
+(defun keg-process-environment ()
+  "Return `process-environment' for keg."
+  (cons (format "EMACSLOADPATH=%s" (keg-load-path)) process-environment))
 
 
 ;;; Main
@@ -333,10 +344,11 @@ SUBCOMMANDS:")
 (defun keg-main-exec (&rest command)
   "Exec COMMAND."
   (keg--princ "Exec command: %s" (string-join command " "))
-  (let ((proc (start-process-shell-command
-               "keg"
-               (get-buffer-create "*keg*")
-               (string-join command " "))))
+  (let* ((process-environment (keg-process-environment))
+         (proc (start-process-shell-command
+                "keg"
+                (get-buffer-create "*keg*")
+                (string-join command " "))))
     (set-process-filter
      proc
      (lambda (_proc str)
@@ -353,6 +365,14 @@ SUBCOMMANDS:")
   "Exec Emacs with ARGS."
   (apply #'keg-main-exec "emacs" args))
 
+(defun keg-main-lint ()
+  "Exec lint."
+  (keg-install-package 'package-lint)
+  (dolist (info (keg-file-read-section 'packages))
+    (let ((name (car info)))
+      (keg-main-exec
+       "emacs" "--batch" "--eval=\"(require 'package-lint)\"" "-f" "package-lint-batch-and-exit" (format "%s.el" name)))))
+
 (defun keg-main-info ()
   "Show this package information."
   (keg--princ "Keg file parsed")
@@ -360,7 +380,7 @@ SUBCOMMANDS:")
 
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
-  (keg--princ (mapconcat #'identity (mapcar #'shell-quote-argument load-path) ":")))
+  (keg--princ (keg-load-path)))
 
 (defun keg-main-debug ()
   "Show debug information."
