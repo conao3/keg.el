@@ -74,7 +74,7 @@ at INDENT-POINT on STATE.  see original function `lisp-indent-function'."
 
 (defvar keg-mode-font-lock-keywords
   `((,(regexp-opt
-       '("sources" "package" "dev-dependencies")
+       '("sources" "package" "dev-dependencies" "lint-disable")
        'symbols)
      . font-lock-keyword-face)
     (,(regexp-opt
