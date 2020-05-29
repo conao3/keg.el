@@ -325,10 +325,10 @@ SUBCOMMANDS:")
 (defun keg-main-exec (&rest command)
   "Exec COMMAND."
   (keg--princ "Exec command: %s" (string-join command " "))
-  (let ((proc (apply #'start-process
-                     "keg"
-                     (get-buffer-create "*keg*")
-                     (car command) (cdr command))))
+  (let ((proc (start-process-shell-command
+               "keg"
+               (get-buffer-create "*keg*")
+               (string-join command " "))))
     (set-process-filter
      proc
      (lambda (_proc str)
