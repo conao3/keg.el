@@ -332,6 +332,7 @@ SUBCOMMANDS:")
     (set-process-filter
      proc
      (lambda (_proc str)
+       ;; (princ str #'external-debugging-output)
        (princ str)))
     (set-process-sentinel
      proc
