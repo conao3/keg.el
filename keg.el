@@ -187,10 +187,15 @@ Return value is below form:
   "Fetch dependency in .keg folder.
 See `package-install'."
   (let ((package-user-dir (expand-file-name ".keg"))
-        (package-archives package-archives))
+        (package-archives package-archives)
+        (reqs-info (keg-build--get-dependency-from-keg-file)))
     (require 'package)
     (package-initialize)
-    (package-download-transaction (package-compute-transaction nil '((ac-capf (20200000 0 1)))))))
+    (dolist (info reqs-info)
+      (let ((_name (car info))
+            (reqs (cdr info)))
+        (package-download-transaction
+         (package-compute-transaction nil reqs))))))
 
 
 ;;; Functions
@@ -272,6 +277,10 @@ SUBCOMMANDS:")
 (depends-on \"leaf\")
 "))
   (keg--princ "Successful creating Keg file"))
+
+(defun keg-main-install ()
+  "Install dependencies in .keg folder."
+  (keg-build--resolve-dependency))
 
 (defun keg-main-info ()
   "Show this package information."
