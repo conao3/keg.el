@@ -52,21 +52,22 @@ If no found the directory, returns nil."
 If no found the Keg file, returns nil."
   (let ((path (keg-file-path))
         sources devs packages)
-    (dolist (elm (read (with-temp-buffer
-                         (insert-file-contents path)
-                         (format "(%s)" (buffer-string)))))
-      (let ((op (car elm))
-            (args (cdr elm)))
-        (cond
-         ((eq 'sources op)
-          (dolist (elm args) (push elm sources)))
-         ((eq 'dev-dependencies op)
-          (dolist (elm args) (push elm devs)))
-         ((eq 'package op)
-          (push args packages)))))
-    `((sources . ,(nreverse (delete-dups sources)))
-      (devs . ,(nreverse (delete-dups devs)))
-      (packages . ,(nreverse (delete-dups packages))))))
+    (when path
+      (dolist (elm (read (with-temp-buffer
+                           (insert-file-contents path)
+                           (format "(%s)" (buffer-string)))))
+        (let ((op (car elm))
+              (args (cdr elm)))
+          (cond
+           ((eq 'sources op)
+            (dolist (elm args) (push elm sources)))
+           ((eq 'dev-dependencies op)
+            (dolist (elm args) (push elm devs)))
+           ((eq 'package op)
+            (push args packages)))))
+      `((sources . ,(nreverse (delete-dups sources)))
+        (devs . ,(nreverse (delete-dups devs)))
+        (packages . ,(nreverse (delete-dups packages)))))))
 
 
 ;;; Functions
@@ -142,6 +143,8 @@ SUBCOMMANDS:")
 
 (defun keg-main-debug ()
   "Show debug information."
+  (keg--princ "Keg file")
+  (keg--princ (keg-file-path))
   (keg--princ "Keg file parsed")
   (keg--princ (pp-to-string (keg-file-read))))
 
