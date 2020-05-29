@@ -86,7 +86,7 @@ If no found the Keg file, returns nil."
      (lambda (elm)
        (when (and (fboundp elm)
                   (string-prefix-p "keg-main-" (symbol-name elm)))
-         (push elm res))))
+         (push (intern (replace-regexp-in-string "^keg-main-" "" (symbol-name elm))) res))))
     (sort res (lambda (a b) (string< (symbol-name a) (symbol-name b))))))
 
 (defun keg-help-string ()
@@ -95,15 +95,15 @@ If no found the Keg file, returns nil."
    (lambda (elm)
      (format
       " %s\n%s"
-      (replace-regexp-in-string "^keg-main-" "" (symbol-name elm))
-      (replace-regexp-in-string "^" "    " (documentation elm))))
+      elm
+      (replace-regexp-in-string
+       "^" "    "
+       (documentation (intern (format "keg-main-%s" elm))))))
    (keg-subcommands)
    "\n"))
 
 
 ;;; Main
-
-(defvar keg-subcommands '(help version init load-path))
 
 (defun keg-main-help ()
   "Show this help."
@@ -150,7 +150,7 @@ SUBCOMMANDS:
      ((eq nil op)
       (keg-main-help)
       (kill-emacs 1))
-     ((memq (intern op) keg-subcommands)
+     ((memq (intern op) (keg-subcommands))
       (apply (intern (format "keg-main-%s" op)) args))
      (t
       (keg-princ (format "Subcommand `%s' is missing" op))
