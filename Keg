@@ -3,9 +3,9 @@
 (sources gnu melpa)
 
 (package keg
-  ((recipe . (keg :fetcher github :repo "conao3/keg.el" :files (:defaults (:exclude "keg-mode.el"))))))
+  (recipe . (keg :fetcher github :repo "conao3/keg.el" :files (:defaults (:exclude "keg-mode.el")))))
 
 (package keg-mode
-  ((recipe . (keg-mode :fetcher github :repo "conao3/keg.el" :files ("keg-mode.el")))))
+  (recipe . (keg-mode :fetcher github :repo "conao3/keg.el" :files ("keg-mode.el"))))
 
 (dev-dependencies buttercup)
