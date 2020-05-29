@@ -243,6 +243,14 @@ This function is `alist-get' polifill for Emacs < 25.1."
              (assoc key alist testfn))))
     (if x (cdr x) default)))
 
+(defun keg-install-package (pkg)
+  "Install PKG in .keg folder."
+  (condition-case _err
+      (package-install pkg)
+    (error
+     (package-refresh-contents)
+     (package-install pkg))))
+
 (defun keg-subcommands ()
   "Return keg subcommands."
   (let (res)
