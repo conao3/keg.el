@@ -31,7 +31,7 @@
 
 (defvar keg-mode-font-lock-keywords
   `((,(regexp-opt
-       '("source" "package" "dev-dependency" "lint-disable")
+       '("source" "package" "dev-dependency" "disable-lint")
        'symbols)
      . font-lock-keyword-face)
     (,(regexp-opt

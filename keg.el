@@ -69,12 +69,12 @@ If no found the Keg file, returns nil."
             (dolist (elm args) (push elm devs)))
            ((eq 'package op)
             (dolist (elm args) (push elm packages)))
-           ((eq 'lint-disable op)
+           ((eq 'disable-lint op)
             (dolist (elm args) (push elm lint-disables))))))
       `((sources . ,(nreverse (delete-dups sources)))
         (devs . ,(nreverse (delete-dups devs)))
         (packages . ,(nreverse (delete-dups packages)))
-        (lint-disables . ,(nreverse (delete-dups lint-disables)))))))
+        (disables . ,(nreverse (delete-dups lint-disables)))))))
 
 (defun keg-file-read-section (section)
   "Return SECTION value from Keg file."

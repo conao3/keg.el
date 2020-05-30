@@ -9,4 +9,4 @@
   (recipe . (keg-mode :fetcher github :repo "conao3/keg.el" :files ("keg-mode.el")))))
 
 (dev-dependency buttercup)
-(lint-disable pacakge-lint)
+(disable-lint pacakge-lint)
