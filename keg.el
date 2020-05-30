@@ -227,27 +227,23 @@ See `package-install'."
 
 ;;; Lint
 
-(defvar keg-linters '(;; byte-compile
-                      ;; checkdoc
-                      ;; declare
-                      ;; sharp-quotes
-                      package-lint)
-  "List of checker which is called with 1 argument.
-Argument is alist contain below information.
-  - sandboxdir
-  - elpadir
-  - builddir
-  - distdir
-  - tmpfile")
-
 (defvar keg-linter-definition
-  '((package-lint . (package-lint package-lint-batch-and-exit)))
+  '((package-lint . (package-lint package-lint-batch-and-exit))
+    ;; (byte-compile . (nil nil))
+    ;; (checkdoc . (nil nil))
+    ;; (declare . (nil nil))
+    ;; (sharp-quotes . (nil nil))
+    )
   "Linter definitions.
 defs     := (<linter> . <def>)
 linter   := SYMBOL
 def      := (<require> <function>)
 require  := SYMBOL | nil
 function := SYMBOL")
+
+(defvar keg-linters (mapcar #'car keg-linter-definition)
+  "List of checkers.")
+
 
 (defvar keg-current-linters nil)
 
