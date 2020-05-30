@@ -394,6 +394,7 @@ This function is `alist-get' polifill for Emacs < 25.1."
 
 ;;; Main
 
+(function-put #'keg-main-help 'keg-cli nil)
 (defun keg-main-help ()
   "Show this help."
   (keg--princ
@@ -405,15 +406,21 @@ SUBCOMMANDS:")
   (keg--princ
    (mapconcat
     (lambda (elm)
-      (let ((doc (documentation (intern (format "keg-main-%s" elm)))))
-        (format
-         " %s\n%s"
-         elm
+      (let* ((fn (intern (format "keg-main-%s" elm)))
+             (doc (documentation fn))
+             (cli (function-get fn 'keg-cli)))
+        (keg--princ
+         (concat
+          (format " %s" elm)
+          (when cli
+            (format " %s" cli))))
+        (keg--princ
          (keg--indent 5
            (replace-regexp-in-string "(fn.*)\\'" "" doc)))))
     (keg-subcommands)
     "\n")))
 
+(function-put #'keg-main-version 'keg-cli nil)
 (defun keg-main-version ()
   "Show `keg' version."
   (keg--princ
@@ -423,6 +430,7 @@ SUBCOMMANDS:")
                              byte-compile-current-file)))
            emacs-version)))
 
+(function-put #'keg-main-init 'keg-cli nil)
 (defun keg-main-init ()
   "Create Keg template file."
   (when (file-exists-p "Keg")
@@ -437,6 +445,7 @@ SUBCOMMANDS:")
 "))
   (keg--princ "Successful creating Keg file"))
 
+(function-put #'keg-main-install 'keg-cli "[PACKAGE]")
 (defun keg-main-install ()
   "Install dependencies in .keg folder."
   (keg--princ "Install dependencies")
@@ -462,6 +471,7 @@ SUBCOMMANDS:")
                          (keg--alist-get 'keg--devs reqinfo)))))
   (keg-build--resolve-dependency))
 
+(function-put #'keg-main-exec 'keg-cli "COMMAND [ARGS...]")
 (defun keg-main-exec (&rest command)
   "Exec COMMAND."
   (let ((proc (keg-start-process (string-join command " "))))
@@ -472,31 +482,36 @@ SUBCOMMANDS:")
     (while t                            ; wait acync process
       (accept-process-output proc 0 100))))
 
+(function-put #'keg-main-emacs 'keg-cli "[ARGS...]")
 (defun keg-main-emacs (&rest args)
   "Exec Emacs with ARGS."
   (apply #'keg-main-exec "emacs" args))
 
+(function-put #'keg-main-lint 'keg-cli "[PACKAGE]")
 (defun keg-main-lint ()
   "Exec lint."
   (keg--princ "Lint")
   (kill-emacs (keg-lint-run)))
 
+(function-put #'keg-main-info 'keg-cli "[PACKAGE]")
 (defun keg-main-info ()
   "Show this package information."
   (keg--princ "Keg file parsed")
   (keg--princ (pp-to-string (keg-file-read))))
 
+(function-put #'keg-main-load-path 'keg-cli nil)
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
   (keg--princ (keg-load-path)))
 
+(function-put #'keg-main-files 'keg-cli "[PACKAGE]")
 (defun keg-main-files (&rest args)
-  "Show packaged files.
-ARGS is [PACKAGE]."
+  "Show packaged files with optional ARGS."
   (let ((package (and (car args) (intern (car args)))))
     (dolist (elm (keg-files package))
       (keg--princ elm))))
 
+(function-put #'keg-main-debug 'keg-cli nil)
 (defun keg-main-debug ()
   "Show debug information."
   (keg--princ "Keg debug information")
@@ -525,6 +540,7 @@ ARGS is [PACKAGE]."
   (keg--princ " Keg file parsed")
   (keg--princ (keg--indent 5 (pp-to-string (keg-file-read)))))
 
+(function-put #'keg-main 'keg-cli nil)
 (defun keg-main ()
   "Init `keg' and exec subcommand."
   (unless noninteractive
