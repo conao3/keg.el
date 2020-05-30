@@ -336,6 +336,7 @@ If KEY is not found in ALIST, return DEFAULT.
 Equality with KEY is tested by TESTFN, defaulting to `eq'.
 
 This function is `alist-get' polifill for Emacs < 25.1."
+  (declare (indent 1))
   (let ((x (if (not testfn)
                (assq key alist)
              (assoc key alist testfn))))
@@ -383,6 +384,12 @@ This function is `alist-get' polifill for Emacs < 25.1."
        ;; (princ str #'external-debugging-output)
        (princ str)))
     proc))
+
+(defun keg-files (&optional package)
+  "Return files list associated with PACKAGE."
+  (keg-build--expand-source-file-list
+   (keg--alist-get 'recipe
+     (keg--alist-get package (keg-file-read-section 'packages)))))
 
 
 ;;; Main
@@ -483,10 +490,12 @@ SUBCOMMANDS:")
   "Return `load-path' in the form of PATH."
   (keg--princ (keg-load-path)))
 
-(defun keg-main-files ()
-  "Show packaged files."
-  (dolist (elm (keg-build--expand-source-file-list))
-    (keg--princ elm)))
+(defun keg-main-files (&rest args)
+  "Show packaged files.
+ARGS is [PACKAGE]."
+  (let ((package (and (car args) (intern (car args)))))
+    (dolist (elm (keg-files package))
+      (keg--princ elm))))
 
 (defun keg-main-debug ()
   "Show debug information."
