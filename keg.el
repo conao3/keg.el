@@ -484,6 +484,14 @@ SUBCOMMANDS:")
 Exec Emacs with ARGS."
   (apply #'keg-main-exec "emacs" args))
 
+(function-put #'keg-main-eval 'keg-cli "[SEXP]")
+(defun keg-main-eval (&rest args)
+  "Eval SEXP with batch Emacs with appropriate environment variables.
+ARGS are (separated) SEXP."
+  (when args
+    (keg-main-exec "emacs" "--batch"
+                   (format "--eval=\"%s\"" (string-join args " ")))))
+
 (function-put #'keg-main-lint 'keg-cli "[PACKAGE]")
 (defun keg-main-lint ()
   "Exec linters for PACKAGE."
