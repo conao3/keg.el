@@ -156,7 +156,7 @@ See `package-build--expand-source-file-list' from MELPA package-build."
   "Get package dependency from Package-Require header from FILE.
 Duplicate requires are resolved by more restrictive."
   (if (not (file-readable-p file))
-      (warn "File %s is missing")
+      (error "File %s is missing" file)
     (let ((reqs-str (lm-with-file file
                       (lm-header "package-requires"))))
       (when reqs-str
@@ -225,6 +225,80 @@ See `package-install'."
       (keg--princ "All dependencies already satisfied"))))
 
 
+;;; Lint
+
+(defvar keg-linters '(;; byte-compile
+                      ;; checkdoc
+                      ;; declare
+                      ;; sharp-quotes
+                      package-lint)
+  "List of checker which is called with 1 argument.
+Argument is alist contain below information.
+  - sandboxdir
+  - elpadir
+  - builddir
+  - distdir
+  - tmpfile")
+
+(defvar keg-linter-definition
+  '((package-lint . (package-lint package-lint-batch-and-exit)))
+  "Linter definitions.
+defs     := (<linter> . <def>)
+linter   := SYMBOL
+def      := (<require> <function>)
+require  := SYMBOL | nil
+function := SYMBOL")
+
+(defvar keg-current-linters nil)
+
+(defun keg-lint-run-1 (file)
+  "Exec one of left linters for FILE."
+  (let ((linter (pop keg-current-linters))
+        (code 0)
+        (running t))
+    (when linter
+      (let* ((info (keg--alist-get linter keg-linter-definition))
+             (req (car info))
+             (fn (cadr info))
+             (command (list
+                       "emacs" "--batch"
+                       (format "--eval=\"(require '%s)\"" req)
+                       (format "--funcall=%s" fn)
+                       file))
+             (proc (keg-start-process (string-join command " "))))
+        (set-process-sentinel
+         proc
+         (lambda (proc _event)
+           (let ((pcode (process-exit-status proc)))
+             (unless (= 0 pcode)
+               (setq code pcode)))
+           (setq running nil)
+           (keg-lint-run-1 file)))
+        (while running
+          (accept-process-output proc 0 100))))
+    code))
+
+(defun keg-lint-run ()
+  "Exec linters."
+  (keg-install-package 'package-lint)
+  (let ((linters keg-linters)
+        (code 0))
+    (dolist (elm (keg-file-read-section 'disables))
+      (unless (memq elm linters)
+        (warn "Linter %s is disabled, but definition is missing" elm))
+      (setq linters (delq elm linters)))
+    (dolist (info (keg-file-read-section 'packages))
+      (let* ((name (car info))
+             (file (format "%s.el" name)))
+        (unless linters
+          (warn "All linter are disabled"))
+        (setq keg-current-linters linters)
+        (let ((pcode (keg-lint-run-1 file)))
+          (unless (= 0 code)
+            (setq code pcode)))))
+    code))
+
+
 ;;; Functions
 
 (defun keg--princ (&optional str &rest args)
@@ -277,6 +351,7 @@ This function is `alist-get' polifill for Emacs < 25.1."
 
 (defun keg-start-process (&rest command)
   "Exec COMMAND and return process object."
+  (keg--princ "Exec command: %s" (string-join command " "))
   (let* ((process-environment (keg-process-environment))
          (proc (start-process-shell-command
                 "keg"
@@ -360,7 +435,6 @@ SUBCOMMANDS:")
 
 (defun keg-main-exec (&rest command)
   "Exec COMMAND."
-  (keg--princ "Exec command: %s" (string-join command " "))
   (let ((proc (keg-start-process (string-join command " "))))
     (set-process-sentinel
      proc
@@ -375,11 +449,8 @@ SUBCOMMANDS:")
 
 (defun keg-main-lint ()
   "Exec lint."
-  (keg-install-package 'package-lint)
-  (dolist (info (keg-file-read-section 'packages))
-    (let ((name (car info)))
-      (keg-main-exec
-       "emacs" "--batch" "--eval=\"(require 'package-lint)\"" "-f" "package-lint-batch-and-exit" (format "%s.el" name)))))
+  (keg--princ "Lint")
+  (kill-emacs (keg-lint-run)))
 
 (defun keg-main-info ()
   "Show this package information."
