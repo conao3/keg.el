@@ -406,6 +406,9 @@ This function is `alist-get' polifill for Emacs < 25.1."
          (keg--alist-get package
            (keg-file-read-section 'packages)))))))
 
+
+;;; Main
+
 (defun keg--argument-count-check (num-min num-max subcommand args)
   "Check number of ARGS range NUM-MIN to NUM-MAX in SUBCOMMAND.
 Meaning of -1 is no restriction."
@@ -424,9 +427,6 @@ but currently %s arguments have been specified"
                       (if (not (= -1 num-min)) num-min 0)
                       (if (not (= -1 num-max)) num-max 'inf)
                       num))))))
-
-
-;;; Main
 
 (function-put #'keg-main-help 'keg-cli nil)
 (defun keg-main-help ()
