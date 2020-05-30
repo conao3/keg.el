@@ -227,21 +227,7 @@ See `package-install'."
 
 ;;; Lint
 
-(defvar keg-linter-definition
-  '((package-lint . (package-lint package-lint-batch-and-exit))
-    (byte-compile . (bytecomp batch-byte-compile))
-    ;; (checkdoc . (nil nil))
-    ;; (declare . (nil nil))
-    ;; (sharp-quotes . (nil nil))
-    )
-  "Linter definitions.
-defs     := (<linter> . <def>)
-linter   := SYMBOL
-def      := (<require> <function>)
-require  := SYMBOL | nil
-function := SYMBOL")
-
-(defvar keg-linters (mapcar #'car keg-linter-definition)
+(defvar keg-linters '(package-lint byte-compile)
   "List of checkers.")
 
 (defvar keg-current-linters nil)
@@ -252,12 +238,10 @@ function := SYMBOL")
         (code 0)
         (running t))
     (when linter
-      (let* ((info (keg--alist-get linter keg-linter-definition))
-             (req (car info))
-             (fn (cadr info))
+      (let* ((fn (intern (format "keg-lint--%s-batch" linter)))
              (command (list
                        "emacs" "--batch"
-                       (format "--eval=\"(require '%s)\"" req)
+                       "--eval=\"(require 'keg)\""
                        (format "--funcall=%s" fn)
                        file))
              (proc (keg-start-process (string-join command " "))))
@@ -268,7 +252,9 @@ function := SYMBOL")
              (unless (= 0 pcode)
                (setq code pcode)))
            (setq running nil)
-           (keg-lint-run-1 file)))
+           (let ((pcode (keg-lint-run-1 file)))
+             (unless (= 0 pcode)
+               (setq code pcode)))))
         (while running
           (accept-process-output proc 0 100))))
     code))
@@ -289,9 +275,46 @@ function := SYMBOL")
           (warn "All linter are disabled"))
         (setq keg-current-linters linters)
         (let ((pcode (keg-lint-run-1 file)))
-          (unless (= 0 code)
+          (unless (= 0 pcode)
             (setq code pcode)))))
     code))
+
+;; (declare-function package-lint-batch-and-exit-1 "ext:package-lint")
+
+(defun keg-lint--package-lint-batch ()
+  "Run `package-lint' for files specified CLI arguments."
+  (require 'package-lint)
+  (unless noninteractive
+    (error "`keg-lint--package-lint-batch' is to be used only with --batch"))
+  (let ((success (package-lint-batch-and-exit-1 command-line-args-left)))
+    (kill-emacs (if success 0 1))))
+
+(defun keg--newline-trim (str)
+  "Sanitize STR by removing newlines."
+  (let* ((str (replace-regexp-in-string "[\n]+$" "" str))
+         (str (replace-regexp-in-string "^[\n]+" "" str)))
+    str))
+
+(defun keg--buffer-almost-empty-p ()
+  "Return non-nil if current buffer is 'almost' empty."
+  (<= (- (point-max) (point)) 3))
+
+(defun keg-lint--byte-compile-batch ()
+  "Run `byte-compile-file' for files specified CLI arguments."
+  (let ((code 0))
+    (dolist (file command-line-args-left)
+      (let (pcode)
+        (ignore-errors (kill-buffer "*Compile-Log*"))
+        (byte-compile-file file)
+        (with-current-buffer (get-buffer-create "*Compile-Log*")
+          (if (keg--buffer-almost-empty-p)
+              (setq pcode 0)
+            (goto-char (point-min)) (forward-line 2)
+            (keg--newline-trim (buffer-substring (point) (point-max)))
+            (setq pcode 1)))
+        (unless (= 0 pcode)
+          (setq code pcode))))
+    (kill-emacs code)))
 
 
 ;;; Functions
@@ -503,6 +526,12 @@ SUBCOMMANDS:")
          (package-user-dir (locate-user-emacs-file "elpa")))
     (make-directory user-emacs-directory 'parent)
     (package-initialize)
+    (add-to-list 'load-path (expand-file-name default-directory))
+    (add-to-list 'load-path (eval-when-compile
+                              (expand-file-name
+                               (file-name-directory
+                                (or load-file-name
+                                    byte-compile-current-file)))))
     (cond
      ((eq nil op)
       (keg-main-install))
