@@ -395,6 +395,25 @@ This function is `alist-get' polifill for Emacs < 25.1."
    (keg--alist-get 'recipe
      (keg--alist-get package (keg-file-read-section 'packages)))))
 
+(defun keg--argument-count-check (num-min num-max subcommand args)
+  "Check number of ARGS range NUM-MIN to NUM-MAX in SUBCOMMAND.
+Meaning of -1 is no restriction."
+  (let ((num (length args)))
+    (unless (and (or (= -1 num-min)
+                     (<= num-min num))
+                 (or (= -1 num-max)
+                     (<= num num-max)))
+      (error (concat
+              (format "USAGE: keg %s %s\n\n"
+                      subcommand
+                      (function-get (intern (format "keg-main-%s" subcommand)) 'keg-cli))
+              (format "The `%s' subcommand expects %s to %s arguments
+but currently %s arguments have been specified"
+                      subcommand
+                      (if (not (= -1 num-min)) num-min 0)
+                      (if (not (= -1 num-max)) num-max 'inf)
+                      num))))))
+
 
 ;;; Main
 
@@ -472,9 +491,11 @@ SUBCOMMANDS:")
   (keg-build--resolve-dependency))
 
 (function-put #'keg-main-exec 'keg-cli "COMMAND [ARGS...]")
-(defun keg-main-exec (&rest command)
-  "Exec COMMAND with appropriate environment variables."
-  (let ((proc (keg-start-process (string-join command " "))))
+(defun keg-main-exec (&rest args)
+  "Exec COMMAND with appropriate environment variables.
+ARGS is list of string."
+  (keg--argument-count-check 1 -1 'exec args)
+  (let ((proc (keg-start-process (string-join args " "))))
     (set-process-sentinel
      proc
      (lambda (proc _event)
@@ -486,19 +507,23 @@ SUBCOMMANDS:")
 (defun keg-main-emacs (&rest args)
   "Exec Emacs with appropriate environment variables.
 Exec Emacs with ARGS."
+  (keg--argument-count-check -1 -1 'emacs args)
   (apply #'keg-main-exec "emacs" args))
 
 (function-put #'keg-main-eval 'keg-cli "[SEXP]")
 (defun keg-main-eval (&rest args)
   "Eval SEXP with batch Emacs with appropriate environment variables.
 ARGS are (separated) SEXP."
+  (keg--argument-count-check -1 -1 'eval args) ; sexp is separated
   (when args
     (keg-main-exec "emacs" "--batch"
                    (format "--eval=\"%s\"" (string-join args " ")))))
 
 (function-put #'keg-main-lint 'keg-cli "[PACKAGE]")
-(defun keg-main-lint ()
-  "Exec linters for PACKAGE."
+(defun keg-main-lint (&rest args)
+  "Exec linters for PACKAGE.
+ARGS first value is specified package."
+  (keg--argument-count-check -1 1 'lint args)
   (keg--princ "Lint")
   (kill-emacs (keg-lint-run)))
 
@@ -506,6 +531,7 @@ ARGS are (separated) SEXP."
 (defun keg-main-info (&rest args)
   "Show PACKAGE information.
 ARGS first value is specified package."
+  (keg--argument-count-check -1 1 'info args)
   (let ((reqinfo (keg-build--get-dependency-from-keg-file))
         (section (keg-file-read-section 'packages))
         (pkg (when args (intern (car args)))))
@@ -543,6 +569,7 @@ ARGS first value is specified package."
 (defun keg-main-files (&rest args)
   "Show Elisp files associated with PACKAGE.
 ARGS is specified package."
+  (keg--argument-count-check -1 1 'files args)
   (let ((package (and (car args) (intern (car args)))))
     (dolist (elm (keg-files package))
       (keg--princ elm))))
