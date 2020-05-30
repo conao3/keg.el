@@ -398,13 +398,11 @@ This function is `alist-get' polifill for Emacs < 25.1."
 
 (defun keg-files (&optional package)
   "Return files list associated with PACKAGE."
-  (let ((packages (keg-packages)))
-    (if (not (memq package packages))
-        (warn "Package %s is not defined.  Package should one of %s" package packages)
-      (keg-build--expand-source-file-list
-       (keg--alist-get 'recipe
-         (keg--alist-get package
-           (keg-file-read-section 'packages)))))))
+  (let ((pkg (keg--argument-package-check package 'allow)))
+    (keg-build--expand-source-file-list
+     (keg--alist-get 'recipe
+       (keg--alist-get pkg
+         (keg-file-read-section 'packages))))))
 
 
 ;;; Main
@@ -427,6 +425,18 @@ but currently %s arguments have been specified"
                       (if (not (= -1 num-min)) num-min 0)
                       (if (not (= -1 num-max)) num-max 'inf)
                       num))))))
+
+(defun keg--argument-package-check (package &optional allow-nil)
+  "Check PACKAGE is one of defined packages.
+Return package symbol if package defined.
+PACKAGE as string is also acceptable.
+If ALLOW-NIL is non-nil, it don't warn if package is nil."
+  (let ((packages (keg-packages))
+        (pkg (if (not (stringp package)) package (intern package))))
+    (if (not (memq pkg (keg-packages)))
+        (unless allow-nil
+          (warn "Package %s is not defined.  Package should one of %s" pkg packages))
+      pkg)))
 
 (function-put #'keg-main-help 'keg-cli nil)
 (defun keg-main-help ()
@@ -535,7 +545,7 @@ ARGS are (separated) SEXP."
   "Exec linters for PACKAGE.
 ARGS first value is specified package."
   (keg--argument-count-check -1 1 'lint args)
-  (let ((pkg (when args (intern (car args)))))
+  (let ((pkg (keg--argument-package-check (car args) 'allow)))
     (kill-emacs (keg-lint pkg))))
 
 (function-put #'keg-main-info 'keg-cli "[PACKAGE]")
@@ -545,7 +555,7 @@ ARGS first value is specified package."
   (keg--argument-count-check -1 1 'info args)
   (let ((reqinfo (keg-build--get-dependency-from-keg-file))
         (section (keg-file-read-section 'packages))
-        (pkg (when args (intern (car args)))))
+        (pkg (keg--argument-package-check (car args) 'allow)))
     (when (and pkg (not (keg--alist-get pkg section)))
       (error "%s is not defined.  PACKAGE should one of %s" pkg (keg-packages)))
     (dolist (info (if (not pkg)
@@ -581,8 +591,8 @@ ARGS first value is specified package."
   "Show Elisp files associated with PACKAGE.
 ARGS is specified package."
   (keg--argument-count-check -1 1 'files args)
-  (let ((package (and (car args) (intern (car args)))))
-    (dolist (elm (keg-files package))
+  (let ((pkg (keg--argument-package-check (car args) 'allow)))
+    (dolist (elm (keg-files pkg))
       (keg--princ elm))))
 
 (function-put #'keg-main-debug 'keg-cli nil)
