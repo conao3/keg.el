@@ -385,6 +385,10 @@ This function is `alist-get' polifill for Emacs < 25.1."
        (princ str)))
     proc))
 
+(defun keg-packages ()
+  "Return packages list."
+  (mapcar #'car (keg-file-read-section 'packages)))
+
 (defun keg-files (&optional package)
   "Return files list associated with PACKAGE."
   (keg-build--expand-source-file-list
@@ -499,10 +503,36 @@ ARGS are (separated) SEXP."
   (kill-emacs (keg-lint-run)))
 
 (function-put #'keg-main-info 'keg-cli "[PACKAGE]")
-(defun keg-main-info ()
-  "Show PACKAGE information."
-  (keg--princ "Keg file parsed")
-  (keg--princ (pp-to-string (keg-file-read))))
+(defun keg-main-info (&rest args)
+  "Show PACKAGE information.
+ARGS first value is specified package."
+  (let ((reqinfo (keg-build--get-dependency-from-keg-file))
+        (section (keg-file-read-section 'packages))
+        (pkg (when args (intern (car args)))))
+    (when (and pkg (not (keg--alist-get pkg section)))
+      (error "%s is not defined.  PACKAGE should one of %s" pkg (keg-packages)))
+    (dolist (info (if (not pkg)
+                      section
+                    (list (keg--alist-get pkg section))))
+      (let* ((name (car info))
+             (alist (cdr info))
+             (reqs (keg--alist-get name reqinfo)))
+        (keg--princ (format " Package: %s" name))
+        (keg--princ (format "     Recipe: %s" (keg--alist-get 'recipe alist)))
+        (keg--princ (format "     Dependency: %s"
+                            (mapcar
+                             (lambda (elm)
+                               (let ((pkg (car elm))
+                                     (ver (cadr elm)))
+                                 `(,pkg ,(package-version-join ver))))
+                             reqs)))))
+    (keg--princ (format " DevDependency: %s"
+                        (mapcar
+                         (lambda (elm)
+                           (let ((pkg (car elm))
+                                 (ver (cadr elm)))
+                             `(,pkg ,(package-version-join ver))))
+                         (keg--alist-get 'keg--devs reqinfo))))))
 
 (function-put #'keg-main-load-path 'keg-cli nil)
 (defun keg-main-load-path ()
