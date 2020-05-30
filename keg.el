@@ -409,14 +409,14 @@ SUBCOMMANDS:")
       (let* ((fn (intern (format "keg-main-%s" elm)))
              (doc (documentation fn))
              (cli (function-get fn 'keg-cli)))
-        (keg--princ
-         (concat
-          (format " %s" elm)
-          (when cli
-            (format " %s" cli))))
-        (keg--princ
-         (keg--indent 5
-           (replace-regexp-in-string "(fn.*)\\'" "" doc)))))
+        (keg--princ (concat
+                     (format " %s" elm)
+                     (when cli
+                       (format " %s" cli))))
+        (keg--princ (keg--indent 5
+                      (progn
+                        (string-match "\\`.*$" doc)
+                        (match-string 0 doc))))))
     (keg-subcommands)
     "\n")))
 
