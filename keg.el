@@ -258,18 +258,21 @@ See `package-install'."
           (accept-process-output proc 0 100))))
     code))
 
-(defun keg-lint-run ()
-  "Exec linters."
+(defun keg-lint (&optional package)
+  "Exec linters for PACKAGE."
   (keg-install-package 'package-lint)
-  (let ((linters keg-linters)
+  (let ((section (keg-file-read-section 'packages))
+        (linters keg-linters)
         (code 0))
     (dolist (elm (keg-file-read-section 'disables))
       (unless (memq elm linters)
         (warn "Linter %s is disabled, but definition is missing" elm))
       (setq linters (delq elm linters)))
-    (dolist (info (keg-file-read-section 'packages))
+    (dolist (info (if (not package)
+                      section
+                    (list (assoc package section))))
       (let* ((name (car info))
-             (files (list (format "%s.el" name))))
+             (files (keg-files name)))
         (unless linters
           (warn "All linter are disabled"))
         (setq keg-current-linters linters)
@@ -376,13 +379,17 @@ This function is `alist-get' polifill for Emacs < 25.1."
   (let* ((process-environment (keg-process-environment))
          (proc (start-process-shell-command
                 "keg"
-                (get-buffer-create "*keg*")
+                (generate-new-buffer "*keg*")
                 (string-join command " "))))
     (set-process-filter
      proc
      (lambda (_proc str)
        ;; (princ str #'external-debugging-output)
        (princ str)))
+    (set-process-sentinel
+     proc
+     (lambda (proc _event)
+       (kill-buffer (process-buffer proc))))
     proc))
 
 (defun keg-packages ()
@@ -391,9 +398,13 @@ This function is `alist-get' polifill for Emacs < 25.1."
 
 (defun keg-files (&optional package)
   "Return files list associated with PACKAGE."
-  (keg-build--expand-source-file-list
-   (keg--alist-get 'recipe
-     (keg--alist-get package (keg-file-read-section 'packages)))))
+  (let ((packages (keg-packages)))
+    (if (not (memq package packages))
+        (warn "Package %s is not defined.  Package should one of %s" package packages)
+      (keg-build--expand-source-file-list
+       (keg--alist-get 'recipe
+         (keg--alist-get package
+           (keg-file-read-section 'packages)))))))
 
 (defun keg--argument-count-check (num-min num-max subcommand args)
   "Check number of ARGS range NUM-MIN to NUM-MAX in SUBCOMMAND.
@@ -524,8 +535,8 @@ ARGS are (separated) SEXP."
   "Exec linters for PACKAGE.
 ARGS first value is specified package."
   (keg--argument-count-check -1 1 'lint args)
-  (keg--princ "Lint")
-  (kill-emacs (keg-lint-run)))
+  (let ((pkg (when args (intern (car args)))))
+    (kill-emacs (keg-lint pkg))))
 
 (function-put #'keg-main-info 'keg-cli "[PACKAGE]")
 (defun keg-main-info (&rest args)
@@ -539,7 +550,7 @@ ARGS first value is specified package."
       (error "%s is not defined.  PACKAGE should one of %s" pkg (keg-packages)))
     (dolist (info (if (not pkg)
                       section
-                    (list (keg--alist-get pkg section))))
+                    (list (assoc pkg section))))
       (let* ((name (car info))
              (alist (cdr info))
              (reqs (keg--alist-get name reqinfo)))
