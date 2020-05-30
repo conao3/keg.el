@@ -320,7 +320,9 @@ See `package-install'."
 
 (defun keg--princ (&optional str &rest args)
   "Do `princ' STR with format ARGS and put \n."
-  (when str (princ (string-trim (apply #'format str args) "[\n\r]+" "[ \n\r]+")))
+  (when str (princ (if (stringp str)
+                       (string-trim (apply #'format str args) "[\n\r]+" "[ \n\r]+")
+                     str)))
   (princ "\n"))
 
 (defun keg--indent (width str)
