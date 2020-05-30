@@ -144,12 +144,12 @@ See `package-build--config-file-list' from MELPA package-build."
      (t
       file-list))))
 
-(defun keg-build--expand-source-file-list (recipe dir)
+(defun keg-build--expand-source-file-list (&optional recipe dir)
   "Resolve source file from RECIPE in DIR.
 See `package-build--expand-source-file-list' from MELPA package-build."
   (mapcar 'car
           (keg-build--expand-file-specs
-           dir
+           (or dir default-directory)
            (keg-build--config-file-list recipe))))
 
 (defun keg-build--get-dependency-from-elisp-file (file)
@@ -455,6 +455,11 @@ SUBCOMMANDS:")
 (defun keg-main-load-path ()
   "Return `load-path' in the form of PATH."
   (keg--princ (keg-load-path)))
+
+(defun keg-main-files ()
+  "Show packaged files."
+  (dolist (elm (keg-build--expand-source-file-list))
+    (keg--princ elm)))
 
 (defun keg-main-debug ()
   "Show debug information."
