@@ -229,7 +229,7 @@ See `package-install'."
 
 (defvar keg-linter-definition
   '((package-lint . (package-lint package-lint-batch-and-exit))
-    ;; (byte-compile . (nil nil))
+    (byte-compile . (bytecomp batch-byte-compile))
     ;; (checkdoc . (nil nil))
     ;; (declare . (nil nil))
     ;; (sharp-quotes . (nil nil))
@@ -243,7 +243,6 @@ function := SYMBOL")
 
 (defvar keg-linters (mapcar #'car keg-linter-definition)
   "List of checkers.")
-
 
 (defvar keg-current-linters nil)
 
