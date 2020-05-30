@@ -232,18 +232,17 @@ See `package-install'."
 
 (defvar keg-current-linters nil)
 
-(defun keg-lint-run-1 (file)
-  "Exec one of left linters for FILE."
+(defun keg-lint-run-1 (files)
+  "Exec one of left linters for FILES."
   (let ((linter (pop keg-current-linters))
         (code 0)
         (running t))
     (when linter
       (let* ((fn (intern (format "keg-lint--%s-batch" linter)))
-             (command (list
-                       "emacs" "--batch"
-                       "--eval=\"(require 'keg)\""
-                       (format "--funcall=%s" fn)
-                       file))
+             (command `("emacs" "--batch"
+                        "--eval=\"(require 'keg)\""
+                        ,(format "--funcall=%s" fn)
+                        ,@files))
              (proc (keg-start-process (string-join command " "))))
         (set-process-sentinel
          proc
@@ -252,7 +251,7 @@ See `package-install'."
              (unless (= 0 pcode)
                (setq code pcode)))
            (setq running nil)
-           (let ((pcode (keg-lint-run-1 file)))
+           (let ((pcode (keg-lint-run-1 files)))
              (unless (= 0 pcode)
                (setq code pcode)))))
         (while running
@@ -270,16 +269,16 @@ See `package-install'."
       (setq linters (delq elm linters)))
     (dolist (info (keg-file-read-section 'packages))
       (let* ((name (car info))
-             (file (format "%s.el" name)))
+             (files (list (format "%s.el" name))))
         (unless linters
           (warn "All linter are disabled"))
         (setq keg-current-linters linters)
-        (let ((pcode (keg-lint-run-1 file)))
+        (let ((pcode (keg-lint-run-1 files)))
           (unless (= 0 pcode)
             (setq code pcode)))))
     code))
 
-;; (declare-function package-lint-batch-and-exit-1 "ext:package-lint")
+(declare-function package-lint-batch-and-exit-1 "ext:package-lint")
 
 (defun keg-lint--package-lint-batch ()
   "Run `package-lint' for files specified CLI arguments."
