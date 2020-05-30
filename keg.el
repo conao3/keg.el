@@ -400,7 +400,7 @@ This function is `alist-get' polifill for Emacs < 25.1."
   (keg--princ
    "USAGE: keg [SUBCOMMAND] [OPTIONS...]
 
-Modern Elisp package development system
+Modern Elisp package development system.
 
 SUBCOMMANDS:")
   (dolist (elm (keg-subcommands))
@@ -443,7 +443,7 @@ SUBCOMMANDS:")
 
 (function-put #'keg-main-install 'keg-cli "[PACKAGE]")
 (defun keg-main-install ()
-  "Install dependencies in .keg folder."
+  "Install package dependencies in .keg sandbox folder."
   (keg--princ "Install dependencies")
   (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
     (dolist (info (keg-file-read-section 'packages))
@@ -469,7 +469,7 @@ SUBCOMMANDS:")
 
 (function-put #'keg-main-exec 'keg-cli "COMMAND [ARGS...]")
 (defun keg-main-exec (&rest command)
-  "Exec COMMAND."
+  "Exec COMMAND with appropriate environment variables."
   (let ((proc (keg-start-process (string-join command " "))))
     (set-process-sentinel
      proc
@@ -480,29 +480,31 @@ SUBCOMMANDS:")
 
 (function-put #'keg-main-emacs 'keg-cli "[ARGS...]")
 (defun keg-main-emacs (&rest args)
-  "Exec Emacs with ARGS."
+  "Exec Emacs with appropriate environment variables.
+Exec Emacs with ARGS."
   (apply #'keg-main-exec "emacs" args))
 
 (function-put #'keg-main-lint 'keg-cli "[PACKAGE]")
 (defun keg-main-lint ()
-  "Exec lint."
+  "Exec linters for PACKAGE."
   (keg--princ "Lint")
   (kill-emacs (keg-lint-run)))
 
 (function-put #'keg-main-info 'keg-cli "[PACKAGE]")
 (defun keg-main-info ()
-  "Show this package information."
+  "Show PACKAGE information."
   (keg--princ "Keg file parsed")
   (keg--princ (pp-to-string (keg-file-read))))
 
 (function-put #'keg-main-load-path 'keg-cli nil)
 (defun keg-main-load-path ()
-  "Return `load-path' in the form of PATH."
+  "Show Emacs appropriate `load-path' same foramt as PATH."
   (keg--princ (keg-load-path)))
 
 (function-put #'keg-main-files 'keg-cli "[PACKAGE]")
 (defun keg-main-files (&rest args)
-  "Show packaged files with optional ARGS."
+  "Show Elisp files associated with PACKAGE.
+ARGS is specified package."
   (let ((package (and (car args) (intern (car args)))))
     (dolist (elm (keg-files package))
       (keg--princ elm))))
