@@ -303,6 +303,7 @@ function := SYMBOL")
 
 (defun keg--indent (width str)
   "Add indent of WIDTH for STR each lines."
+  (declare (indent 1))
   (replace-regexp-in-string "^" (make-string width ?\s) str))
 
 (defun keg--alist-get (key alist &optional default _remove testfn)
@@ -373,10 +374,12 @@ SUBCOMMANDS:")
   (keg--princ
    (mapconcat
     (lambda (elm)
-      (format
-       " %s\n%s"
-       elm
-       (keg--indent 5 (documentation (intern (format "keg-main-%s" elm))))))
+      (let ((doc (documentation (intern (format "keg-main-%s" elm)))))
+        (format
+         " %s\n%s"
+         elm
+         (keg--indent 5
+           (replace-regexp-in-string "(fn.*)\\'" "" doc)))))
     (keg-subcommands)
     "\n")))
 
