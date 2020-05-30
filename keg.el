@@ -403,22 +403,18 @@ This function is `alist-get' polifill for Emacs < 25.1."
 Modern Elisp package development system
 
 SUBCOMMANDS:")
-  (keg--princ
-   (mapconcat
-    (lambda (elm)
-      (let* ((fn (intern (format "keg-main-%s" elm)))
-             (doc (documentation fn))
-             (cli (function-get fn 'keg-cli)))
-        (keg--princ (concat
-                     (format " %s" elm)
-                     (when cli
-                       (format " %s" cli))))
-        (keg--princ (keg--indent 5
-                      (progn
-                        (string-match "\\`.*$" doc)
-                        (match-string 0 doc))))))
-    (keg-subcommands)
-    "\n")))
+  (dolist (elm (keg-subcommands))
+    (let* ((fn (intern (format "keg-main-%s" elm)))
+           (doc (documentation fn))
+           (cli (function-get fn 'keg-cli)))
+      (keg--princ (concat
+                   (format " %s" elm)
+                   (when cli
+                     (format " %s" cli))))
+      (keg--princ (keg--indent 5
+                    (progn
+                      (string-match "\\`.*$" doc)
+                      (match-string 0 doc)))))))
 
 (function-put #'keg-main-version 'keg-cli nil)
 (defun keg-main-version ()
