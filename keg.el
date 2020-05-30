@@ -494,6 +494,8 @@ SUBCOMMANDS:")
 
 (defun keg-main ()
   "Init `keg' and exec subcommand."
+  (unless noninteractive
+    (error "`keg-main' is to be used only with --batch"))
   (let* ((op (car command-line-args-left))
          (args (cdr command-line-args-left))
          (user-emacs-directory
