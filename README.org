@@ -27,11 +27,111 @@
 Modern Elisp package development system.
 
 * Install
+#+begin_src shell
+  git clone https://github.com/conao3/keg.el.git .keg
+  PATH=$HOME/.keg/bin:$PATH
+#+end_src
+
 #+begin_src emacs-lisp
   (leaf keg :ensure t)
+  (leaf keg-mode :ensure t)
 #+end_src
 
 * Usage
+Keg includes =keg= executable, =keg= Elisp package, =keg-mode= Emacs major-mode.
+
+** keg executable
+*** emacs
+#+begin_src shell
+  keg emacs [ARGS...]
+#+end_src
+Exec Emacs with given args, with the appropriate environment (see =keg exec=).
+
+*** exec
+#+begin_src shell
+  keg exec [COMMAND] [ARGS...]
+#+end_src
+Exec command with given args, with the appropriate environment.
+- Set =$EMACSLOADPATH= with =$(keg load-path)=
+
+  See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][General Variables - Emacs manual]].
+
+*** files
+#+begin_src shell
+  keg files [PACKAGE]
+#+end_src
+Show list of files to be packaged.
+
+If package specified, show only list associated with it.
+
+*** info
+#+begin_src shell
+  keg info [PACKAGE]
+#+end_src
+Show package info.
+
+If package specified, show only info associated with it.
+
+*** init
+#+begin_src shell
+  keg init
+#+end_src
+Create =Keg= file in current directory.
+
+*** install
+#+begin_src shell
+  keg install [PACKAGE]
+#+end_src
+Install dependencies in =.keg= sandbox.
+
+If package specified, only install associated with it.
+
+*** lint
+#+begin_src shell
+  keg lint [PACKAGE]
+#+end_src
+Lint packages.
+
+If package specified, only lint the specified package.
+
+*** load-path
+#+begin_src shell
+  keg load-path
+#+end_src
+Show Emacs appropriate =load-path= same format as =PATH=.
+This info is used =keg exec=.
+
+*** version
+#+begin_src shell
+  keg version
+#+end_src
+Show =keg= and using =Emacs= version info.
+
+*** help
+#+begin_src shell
+  keg help
+#+end_src
+Show subcommand help.
+
+*** debug
+#+begin_src shell
+  keg debug
+#+end_src
+Show debug info.
+
+
+** keg Elisp package
+- keg-file-dir :: Get directory path which =Keg= located
+- keg-file-path :: Get file path to =Keg= file
+- keg-file-read :: Get parsed Sexp readed =Keg= file
+- keg-file-read-section :: Get parsed Sexp for specified section.
+- keg-install-package :: Install package in =.keg= sandbox
+- keg-subcommands :: Get all =keg= subcommands list
+- keg-load-path :: Get =load-path= string same format as PATH
+- keg-process-environment :: Get appropriate environment value
+
+** keg-mode Emacs major mode
+- keg-mode :: Major-mode for =Keg= file
 
 * Customize
 
