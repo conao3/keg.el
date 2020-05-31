@@ -464,10 +464,12 @@ If ALLOW-NIL is non-nil, it don't warn if package is nil."
           (warn "Package %s is not defined.  Package should one of %s" pkg packages))
       pkg)))
 
-(defun keg-main-help ()
+(defun keg-main-help (&rest args)
   "Show this help.
+ARGS is CLI arguments.
 
 USAGE: keg help"
+  (keg--argument-count-check 0 0 'help args)
   (keg--princ
    "USAGE: keg [SUBCOMMAND] [OPTIONS...]
 
@@ -480,10 +482,12 @@ SUBCOMMANDS:")
       (keg--princ (format " %s" (if argument-usage argument-usage elm)))
       (keg--princ (keg--indent 5 usage)))))
 
-(defun keg-main-version ()
+(defun keg-main-version (&rest args)
   "Show `keg' version.
+ARGS is CLI arguments
 
 USAGE: keg version"
+  (keg--argument-count-check 0 0 'version args)
   (keg--princ
    (format "Keg %s running on Emacs %s"
            (eval-when-compile
@@ -491,10 +495,12 @@ USAGE: keg version"
                              byte-compile-current-file)))
            emacs-version)))
 
-(defun keg-main-init ()
+(defun keg-main-init (&rest args)
   "Create Keg template file.
+ARGS is CLI argument.
 
 USAGE: keg init"
+  (keg--argument-count-check 0 0 'install args)
   (when (file-exists-p "Keg")
     (error "Keg file already exists.  Do nothing"))
   (with-temp-file "Keg"
@@ -507,10 +513,12 @@ USAGE: keg init"
 "))
   (keg--princ "Successful creating Keg file"))
 
-(defun keg-main-install ()
+(defun keg-main-install (&rest args)
   "Install package dependencies in .keg sandbox folder.
+ARGS is CLI argument.
 
 USAGE: keg install [PACKAGE]"
+  (keg--argument-count-check -1 1 'install args)
   (keg--princ "Install dependencies")
   (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
     (dolist (info (keg-file-read-section 'packages))
@@ -609,10 +617,12 @@ USAGE: keg info [PACKAGE]"
                              `(,pkg ,(package-version-join ver))))
                          (keg--alist-get 'keg--devs reqinfo))))))
 
-(defun keg-main-load-path ()
+(defun keg-main-load-path (&rest args)
   "Show Emacs appropriate `load-path' same foramt as PATH.
+ARGS is CLI argument.
 
 USAGE: keg `load-path'"
+  (keg--argument-count-check 0 0 'load-path args)
   (keg--princ (keg-load-path)))
 
 (defun keg-main-files (&rest args)
@@ -625,10 +635,12 @@ USAGE: keg files [PACKAGE]"
     (dolist (elm (keg-files pkg))
       (keg--princ elm))))
 
-(defun keg-main-debug ()
+(defun keg-main-debug (&rest args)
   "Show debug information.
+ARGS is CLI argument.
 
 USAGE: keg debug"
+  (keg--argument-count-check 0 0 'debug args)
   (keg--princ "Keg debug information")
   (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
     (dolist (info (keg-file-read-section 'packages))
