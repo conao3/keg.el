@@ -40,6 +40,8 @@
 * Description
 Modern Elisp package development system.
 
+Keg is 100% Elisp project and it developed as alternative to [[https://github.com/cask/cask][Cask]].
+
 * Install
 #+begin_src shell
   git clone https://github.com/conao3/keg.el.git .keg
