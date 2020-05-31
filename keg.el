@@ -435,16 +435,17 @@ Meaning of -1 is no restriction."
                      (<= num-min num))
                  (or (= -1 num-max)
                      (<= num num-max)))
-      (error (concat
-              (format "USAGE: keg %s %s\n\n"
-                      subcommand
-                      (function-get (intern (format "keg-main-%s" subcommand)) 'keg-cli))
-              (format "The `%s' subcommand expects %s to %s arguments
+      (let ((usage (keg-argument-usage subcommand)))
+        (error (concat
+                "USAGE: keg"
+                (format " %s" (if usage usage subcommand))
+                "\n\n"
+                (format "The `%s' subcommand expects %s to %s arguments
 but currently %s arguments have been specified"
-                      subcommand
-                      (if (not (= -1 num-min)) num-min 0)
-                      (if (not (= -1 num-max)) num-max 'inf)
-                      num))))))
+                        subcommand
+                        (if (not (= -1 num-min)) num-min 0)
+                        (if (not (= -1 num-max)) num-max 'inf)
+                        num)))))))
 
 (defun keg--argument-package-check (package &optional allow-nil)
   "Check PACKAGE is one of defined packages.
