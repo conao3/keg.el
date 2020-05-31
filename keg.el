@@ -587,10 +587,22 @@ USAGE: keg lint [PACKAGE]"
   "Byte compile for PACKAGE.
 ARGS first value is specified package.
 
-USAGE: keg buid [PACKAGE]"
+USAGE: keg build [PACKAGE]"
   (keg--argument-count-check -1 1 'build args)
   (dolist (file (keg-files (car args)))
     (byte-recompile-file file 'force 0)))
+
+(defun keg-main-clean-elc (&rest args)
+  "Clean `.elc' files.
+ARGS first value is specified package.
+
+USAGE: keg clean-elc [PACKAGE]"
+  (keg--argument-count-check -1 1 'clean-elc args)
+  (let ((pkg (keg--argument-package-check (car args) 'allow)))
+    (dolist (file (keg-files pkg))
+      (let ((elc (concat file "c")))
+        (keg--princ (format "Removing %s..." elc))
+        (delete-file elc)))))
 
 (defun keg-main-info (&rest args)
   "Show PACKAGE information.
