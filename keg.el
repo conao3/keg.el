@@ -583,6 +583,15 @@ USAGE: keg lint [PACKAGE]"
   (let ((pkg (keg--argument-package-check (car args) 'allow)))
     (kill-emacs (keg-lint pkg))))
 
+(defun keg-main-build (&rest args)
+  "Byte compile for PACKAGE.
+ARGS first value is specified package.
+
+USAGE: keg buid [PACKAGE]"
+  (keg--argument-count-check -1 1 'build args)
+  (dolist (file (keg-files (car args)))
+    (byte-recompile-file file 'force 0)))
+
 (defun keg-main-info (&rest args)
   "Show PACKAGE information.
 ARGS first value is specified package.
