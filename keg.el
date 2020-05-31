@@ -422,7 +422,12 @@ This function is `alist-get' polifill for Emacs < 25.1."
       (error "Subcommand `%s' is not defined" subcommand)
     (let ((doc (documentation (keg-function subcommand))))
       (string-match "^USAGE: keg \\(.*\\)$" doc)
-      (match-string 1 doc))))
+      (replace-regexp-in-string
+       "‘\\(.*\\)’" "\\1"
+       (replace-regexp-in-string
+        "Emacs" "emacs"
+        (match-string 1 doc)
+        'case)))))
 
 
 ;;; Main
