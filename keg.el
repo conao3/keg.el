@@ -404,6 +404,26 @@ This function is `alist-get' polifill for Emacs < 25.1."
        (keg--alist-get pkg
          (keg-file-read-section 'packages))))))
 
+(defun keg-function (subcommand)
+  "Return function symbol from SUBCOMMAND."
+  (intern (format "keg-main-%s" subcommand)))
+
+(defun keg-usage (subcommand)
+  "Return SUBCOMMAND CLI usage."
+  (if (not (memq subcommand (keg-subcommands)))
+      (error "Subcommand `%s' is not defined" subcommand)
+    (let ((doc (documentation (keg-function subcommand))))
+      (string-match "\\`.*$" doc)
+      (match-string 0 doc))))
+
+(defun keg-argument-usage (subcommand)
+  "Return SUBCOMMAND CLI usage."
+  (if (not (memq subcommand (keg-subcommands)))
+      (error "Subcommand `%s' is not defined" subcommand)
+    (let ((doc (documentation (keg-function subcommand))))
+      (string-match "^USAGE: keg \\(.*\\)$" doc)
+      (match-string 1 doc))))
+
 
 ;;; Main
 
@@ -438,9 +458,10 @@ If ALLOW-NIL is non-nil, it don't warn if package is nil."
           (warn "Package %s is not defined.  Package should one of %s" pkg packages))
       pkg)))
 
-(function-put #'keg-main-help 'keg-cli nil)
 (defun keg-main-help ()
-  "Show this help."
+  "Show this help.
+
+USAGE: keg help"
   (keg--princ
    "USAGE: keg [SUBCOMMAND] [OPTIONS...]
 
@@ -448,21 +469,15 @@ Modern Elisp package development system.
 
 SUBCOMMANDS:")
   (dolist (elm (keg-subcommands))
-    (let* ((fn (intern (format "keg-main-%s" elm)))
-           (doc (documentation fn))
-           (cli (function-get fn 'keg-cli)))
-      (keg--princ (concat
-                   (format " %s" elm)
-                   (when cli
-                     (format " %s" cli))))
-      (keg--princ (keg--indent 5
-                    (progn
-                      (string-match "\\`.*$" doc)
-                      (match-string 0 doc)))))))
+    (let ((usage (keg-usage elm))
+          (argument-usage (keg-argument-usage elm)))
+      (keg--princ (format " %s" (if argument-usage argument-usage elm)))
+      (keg--princ (keg--indent 5 usage)))))
 
-(function-put #'keg-main-version 'keg-cli nil)
 (defun keg-main-version ()
-  "Show `keg' version."
+  "Show `keg' version.
+
+USAGE: keg version"
   (keg--princ
    (format "Keg %s running on Emacs %s"
            (eval-when-compile
@@ -470,9 +485,10 @@ SUBCOMMANDS:")
                              byte-compile-current-file)))
            emacs-version)))
 
-(function-put #'keg-main-init 'keg-cli nil)
 (defun keg-main-init ()
-  "Create Keg template file."
+  "Create Keg template file.
+
+USAGE: keg init"
   (when (file-exists-p "Keg")
     (error "Keg file already exists.  Do nothing"))
   (with-temp-file "Keg"
@@ -485,9 +501,10 @@ SUBCOMMANDS:")
 "))
   (keg--princ "Successful creating Keg file"))
 
-(function-put #'keg-main-install 'keg-cli "[PACKAGE]")
 (defun keg-main-install ()
-  "Install package dependencies in .keg sandbox folder."
+  "Install package dependencies in .keg sandbox folder.
+
+USAGE: keg install [PACKAGE]"
   (keg--princ "Install dependencies")
   (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
     (dolist (info (keg-file-read-section 'packages))
@@ -511,10 +528,11 @@ SUBCOMMANDS:")
                          (keg--alist-get 'keg--devs reqinfo)))))
   (keg-build--resolve-dependency))
 
-(function-put #'keg-main-exec 'keg-cli "COMMAND [ARGS...]")
 (defun keg-main-exec (&rest args)
   "Exec COMMAND with appropriate environment variables.
-ARGS is list of string."
+ARGS is list of string.
+
+USAGE: keg exec COMMAND [ARGS...]"
   (keg--argument-count-check 1 -1 'exec args)
   (let ((proc (keg-start-process (string-join args " "))))
     (set-process-sentinel
@@ -524,34 +542,38 @@ ARGS is list of string."
     (while t                            ; wait acync process
       (accept-process-output proc 0 100))))
 
-(function-put #'keg-main-emacs 'keg-cli "[ARGS...]")
 (defun keg-main-emacs (&rest args)
   "Exec Emacs with appropriate environment variables.
-Exec Emacs with ARGS."
+Exec Emacs with ARGS.
+
+USAGE: keg Emacs [ARGS...]"
   (keg--argument-count-check -1 -1 'emacs args)
   (apply #'keg-main-exec "emacs" args))
 
-(function-put #'keg-main-eval 'keg-cli "[SEXP]")
 (defun keg-main-eval (&rest args)
   "Eval SEXP with batch Emacs with appropriate environment variables.
-ARGS are (separated) SEXP."
+ARGS are (separated) SEXP.
+
+USAGE: keg eval [SEXP]"
   (keg--argument-count-check -1 -1 'eval args) ; sexp is separated
   (when args
     (keg-main-exec "emacs" "--batch"
                    (format "--eval=\"%s\"" (string-join args " ")))))
 
-(function-put #'keg-main-lint 'keg-cli "[PACKAGE]")
 (defun keg-main-lint (&rest args)
   "Exec linters for PACKAGE.
-ARGS first value is specified package."
+ARGS first value is specified package.
+
+USAGE: keg lint [PACKAGE]"
   (keg--argument-count-check -1 1 'lint args)
   (let ((pkg (keg--argument-package-check (car args) 'allow)))
     (kill-emacs (keg-lint pkg))))
 
-(function-put #'keg-main-info 'keg-cli "[PACKAGE]")
 (defun keg-main-info (&rest args)
   "Show PACKAGE information.
-ARGS first value is specified package."
+ARGS first value is specified package.
+
+USAGE: keg info [PACKAGE]"
   (keg--argument-count-check -1 1 'info args)
   (let ((reqinfo (keg-build--get-dependency-from-keg-file))
         (section (keg-file-read-section 'packages))
@@ -581,23 +603,26 @@ ARGS first value is specified package."
                              `(,pkg ,(package-version-join ver))))
                          (keg--alist-get 'keg--devs reqinfo))))))
 
-(function-put #'keg-main-load-path 'keg-cli nil)
 (defun keg-main-load-path ()
-  "Show Emacs appropriate `load-path' same foramt as PATH."
+  "Show Emacs appropriate `load-path' same foramt as PATH.
+
+USAGE: keg `load-path'"
   (keg--princ (keg-load-path)))
 
-(function-put #'keg-main-files 'keg-cli "[PACKAGE]")
 (defun keg-main-files (&rest args)
   "Show Elisp files associated with PACKAGE.
-ARGS is specified package."
+ARGS is specified package.
+
+USAGE: keg files [PACKAGE]"
   (keg--argument-count-check -1 1 'files args)
   (let ((pkg (keg--argument-package-check (car args) 'allow)))
     (dolist (elm (keg-files pkg))
       (keg--princ elm))))
 
-(function-put #'keg-main-debug 'keg-cli nil)
 (defun keg-main-debug ()
-  "Show debug information."
+  "Show debug information.
+
+USAGE: keg debug"
   (keg--princ "Keg debug information")
   (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
     (dolist (info (keg-file-read-section 'packages))
@@ -624,7 +649,6 @@ ARGS is specified package."
   (keg--princ " Keg file parsed")
   (keg--princ (keg--indent 5 (pp-to-string (keg-file-read)))))
 
-(function-put #'keg-main 'keg-cli nil)
 (defun keg-main ()
   "Init `keg' and exec subcommand."
   (unless noninteractive
