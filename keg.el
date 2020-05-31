@@ -673,7 +673,7 @@ USAGE: keg debug"
      ((memq (intern op) (keg-subcommands))
       (apply (intern (format "keg-main-%s" op)) args))
      (t
-      (keg--princ (format "Subcommand `%s' is missing" op))
+      (keg--princ (format "Subcommand `%s' is not defined" op))
       (keg--princ)
       (keg-main-help)
       (kill-emacs 1)))))
