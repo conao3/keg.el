@@ -38,7 +38,9 @@ Modern Elisp package development system.
 #+end_src
 
 * Usage
-Keg includes =keg= executable, =keg= Elisp package, =keg-mode= Emacs major-mode.
+This repository includes =keg= executable, =keg= Elisp package, =keg-mode= Emacs major-mode.
+
+And [[https://github.com/marketplace/actions/setup-keg][keg-setup]] for GitHub actions is available.
 
 ** keg executable
 *** emacs
