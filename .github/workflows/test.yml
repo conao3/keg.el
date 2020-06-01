@@ -26,6 +26,9 @@ jobs:
         version: ${{ matrix.emacs_version }}
     - uses: conao3/setup-keg@master
 
+    - name: Run lint
+      run: 'make lint'
+
     - name: Run tests
       if: matrix.allow_failure != true
       run: 'make test'

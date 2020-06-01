@@ -10,7 +10,7 @@ EMACS        ?= emacs
 
 ##################################################
 
-.PHONY: all help build test clean
+.PHONY: all help build test lint clean
 
 all: help
 
@@ -34,6 +34,9 @@ help:
 
 build:
 	keg build
+
+lint:
+	keg lint
 
 test: build
 	keg exec $(EMACS) --batch -l $(PACKAGE_NAME)-tests.el -f cort-test-run
