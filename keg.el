@@ -692,12 +692,13 @@ USAGE: keg debug"
   "Init `keg' and exec subcommand."
   (unless noninteractive
     (error "`keg-main' is to be used only with --batch"))
+  (when (string= "--" (car command-line-args-left))
+    (pop command-line-args-left))
   (let* ((op (car command-line-args-left))
          (args (cdr command-line-args-left))
          (user-emacs-directory
           (expand-file-name (format ".keg/%s" emacs-version)))
          (package-user-dir (locate-user-emacs-file "elpa")))
-    (make-directory user-emacs-directory 'parent)
     (package-initialize)
     (add-to-list 'load-path (expand-file-name default-directory))
     (add-to-list 'load-path (eval-when-compile
@@ -705,6 +706,10 @@ USAGE: keg debug"
                                (file-name-directory
                                 (or load-file-name
                                     byte-compile-current-file)))))
+    (unless (file-directory-p user-emacs-directory)
+      (keg--princ "As missing .keg directory, install dependencies")
+      (make-directory user-emacs-directory 'parent)
+      (keg-main-install))
     (cond
      ((null op)
       (keg-main-install))
