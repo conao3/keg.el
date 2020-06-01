@@ -18,6 +18,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(setq debug-on-error t)
 (let ((inhibit-message t))
   (load (expand-file-name "../keg" (file-name-directory load-file-name))))
 (keg-main)
