@@ -2,6 +2,17 @@ name: Main workflow
 on: [push, pull_request]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: purcell/setup-emacs@master
+      with:
+        version: '26.3'
+    - uses: conao3/setup-keg@master
+    - name: Run lint
+      run: 'make lint'
+
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -25,9 +36,6 @@ jobs:
       with:
         version: ${{ matrix.emacs_version }}
     - uses: conao3/setup-keg@master
-
-    - name: Run lint
-      run: 'make lint'
 
     - name: Run tests
       if: matrix.allow_failure != true
