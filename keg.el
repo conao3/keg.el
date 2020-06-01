@@ -28,6 +28,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'lisp-mnt)
 (require 'subr-x)
 (require 'package)
