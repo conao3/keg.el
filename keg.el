@@ -335,16 +335,14 @@ See `package-install'."
   (declare (indent 1))
   (replace-regexp-in-string "^" (make-string width ?\s) str))
 
-(defun keg--alist-get (key alist &optional default _remove testfn)
+(defun keg--alist-get (key alist &optional default)
   "Find the first element of ALIST whose `car' equals KEY and return its `cdr'.
 If KEY is not found in ALIST, return DEFAULT.
-Equality with KEY is tested by TESTFN, defaulting to `eq'.
+For backward compatibility, TESTFN is always `eq'.
 
 This function is `alist-get' polifill for Emacs < 25.1."
   (declare (indent 1))
-  (let ((x (if (not testfn)
-               (assq key alist)
-             (assoc key alist testfn))))
+  (let ((x (assq key alist)))
     (if x (cdr x) default)))
 
 (defun keg-install-package (pkg)
