@@ -324,7 +324,9 @@ See `package-install'."
 (defun keg--princ (&optional str &rest args)
   "Do `princ' STR with format ARGS and put \n."
   (when str (princ (if (stringp str)
-                       (string-trim (apply #'format str args) "[\n\r]+" "[ \n\r]+")
+                       (replace-regexp-in-string
+                        "\\(\\`[\n\r]+\\)\\|\\([\n\r]+\\'\\)" ""
+                        (apply #'format str args))
                      str)))
   (princ "\n"))
 
