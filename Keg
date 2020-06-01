@@ -8,4 +8,4 @@
  (keg-mode
   (recipe . (keg-mode :fetcher github :repo "conao3/keg.el" :files ("keg-mode.el")))))
 
-(dev-dependency buttercup)
+(dev-dependency cort)
