@@ -39,5 +39,4 @@ test: build
 	keg exec $(EMACS) --batch -l $(PACKAGE_NAME)-tests.el -f cort-test-run
 
 clean:
-	keg clean-elc
-	rm -rf .keg
+	keg clean
