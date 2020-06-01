@@ -29,6 +29,11 @@
 
 (require 'lisp-mode)
 
+(defvar keg-lisp-mode-symbol-regexp "\\(?:\\sw\\|\\s_\\|\\\\.\\)+"
+  "Lisp symbol regexp.
+This variable defined as backward compatibility.
+Original variable is `lisp-mode-symbol-regexp'.")
+
 (defvar keg-mode-font-lock-keywords
   `((,(regexp-opt
        '("source" "package" "dev-dependency" "disable-lint")
