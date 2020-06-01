@@ -727,14 +727,14 @@ USAGE: keg debug"
                                     byte-compile-current-file)))))
     (cond
      ((and
-       (not (file-exists-p "Keg"))
-       (memq op keg-global-commands))
+       (memq op keg-global-commands)
+       (not (file-exists-p "Keg")))
       (keg--princ "Missing Keg file in current directory")
       (keg--princ "Exec `keg init' to create Keg file")
       (keg--princ ""))
      ((and
-       (not (file-exists-p "Keg"))
-       (not (memq op keg-global-commands)))
+       (not (memq op keg-global-commands))
+       (not (file-exists-p "Keg")))
       (keg--princ "Missing Keg file in current directory")
       (keg--princ "Keg file is required to exec `%s' command" op)
       (keg--princ "Exec `keg init' to create Keg file")
