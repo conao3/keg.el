@@ -699,17 +699,22 @@ USAGE: keg debug"
          (user-emacs-directory
           (expand-file-name (format ".keg/%s" emacs-version)))
          (package-user-dir (locate-user-emacs-file "elpa")))
-    (package-initialize)
-    (add-to-list 'load-path (expand-file-name default-directory))
-    (add-to-list 'load-path (eval-when-compile
-                              (expand-file-name
-                               (file-name-directory
-                                (or load-file-name
-                                    byte-compile-current-file)))))
-    (unless (file-directory-p user-emacs-directory)
-      (keg--princ "As missing .keg directory, install dependencies")
-      (make-directory user-emacs-directory 'parent)
-      (keg-main-install))
+    (if (not (file-readable-p "Keg"))
+        (progn
+          (keg--princ "Missing Keg file in current directory")
+          (keg--princ "Exec `keg init' to create Keg file")
+          (keg--princ ""))
+      (package-initialize)
+      (add-to-list 'load-path (expand-file-name default-directory))
+      (add-to-list 'load-path (eval-when-compile
+                                (expand-file-name
+                                 (file-name-directory
+                                  (or load-file-name
+                                      byte-compile-current-file)))))
+      (unless (file-directory-p user-emacs-directory)
+        (keg--princ "As missing .keg directory, install dependencies")
+        (make-directory user-emacs-directory 'parent)
+        (keg-main-install)))
     (cond
      ((null op)
       (keg-main-install))
