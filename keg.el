@@ -604,6 +604,16 @@ USAGE: keg clean-elc [PACKAGE]"
         (keg--princ (format "Removing %s..." elc))
         (delete-file elc)))))
 
+(defun keg-main-clean (&rest args)
+  "Clean `.elc' files and `.keg' sandbox.
+ARGS is CLI argument.
+
+USAGE: keg clean"
+  (keg--argument-count-check 0 0 'clean args)
+  (keg--princ "Removing .keg...")
+  (delete-directory ".keg" 'force)
+  (keg-main-clean-elc))
+
 (defun keg-main-info (&rest args)
   "Show PACKAGE information.
 ARGS first value is specified package.
@@ -692,7 +702,7 @@ USAGE: keg debug"
   "List of commands that don't require a Keg file.")
 
 (defvar keg-no-install-commands `(,@keg-global-commands
-                                  install init clean-elc info)
+                                  install init clean clean-elc info)
   "List of commands that don't require dependency installation.")
 
 (defun keg-main ()
