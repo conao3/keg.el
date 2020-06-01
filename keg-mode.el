@@ -44,7 +44,7 @@ Original variable is `lisp-mode-symbol-regexp'.")
        'symbols)
      . font-lock-variable-name-face)
     ;; Constant values.
-    (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
+    (,(concat "\\_<:" keg-lisp-mode-symbol-regexp "\\_>")
      (0 font-lock-builtin-face))))
 
 ;;;###autoload
