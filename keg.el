@@ -688,38 +688,59 @@ USAGE: keg debug"
   (keg--princ " Keg file parsed")
   (keg--princ (keg--indent 5 (pp-to-string (keg-file-read)))))
 
+(defvar keg-global-commands '(help version debug)
+  "List of commands that don't require a Keg file.")
+
+(defvar keg-no-install-commands `(,@keg-global-commands
+                                  install init clean-elc info)
+  "List of commands that don't require dependency installation.")
+
 (defun keg-main ()
   "Init `keg' and exec subcommand."
   (unless noninteractive
     (error "`keg-main' is to be used only with --batch"))
   (when (string= "--" (car command-line-args-left))
     (pop command-line-args-left))
-  (let* ((op (car command-line-args-left))
+  (let* ((opraw (car command-line-args-left))
+         (op (when opraw (intern opraw)))
          (args (cdr command-line-args-left))
          (user-emacs-directory
           (expand-file-name (format ".keg/%s" emacs-version)))
          (package-user-dir (locate-user-emacs-file "elpa")))
-    (if (not (file-readable-p "Keg"))
-        (progn
-          (keg--princ "Missing Keg file in current directory")
-          (keg--princ "Exec `keg init' to create Keg file")
-          (keg--princ ""))
-      (package-initialize)
-      (add-to-list 'load-path (expand-file-name default-directory))
-      (add-to-list 'load-path (eval-when-compile
-                                (expand-file-name
-                                 (file-name-directory
-                                  (or load-file-name
-                                      byte-compile-current-file)))))
-      (unless (file-directory-p user-emacs-directory)
-        (keg--princ "As missing .keg directory, install dependencies")
-        (make-directory user-emacs-directory 'parent)
-        (keg-main-install)))
+    (package-initialize)
+    (add-to-list 'load-path (expand-file-name default-directory))
+    (add-to-list 'load-path (eval-when-compile
+                              (expand-file-name
+                               (file-name-directory
+                                (or buffer-file-name
+                                    load-file-name
+                                    byte-compile-current-file)))))
+    (cond
+     ((and
+       (not (file-exists-p "Keg"))
+       (memq op keg-global-commands))
+      (keg--princ "Missing Keg file in current directory")
+      (keg--princ "Exec `keg init' to create Keg file")
+      (keg--princ ""))
+     ((and
+       (not (file-exists-p "Keg"))
+       (not (memq op keg-global-commands)))
+      (keg--princ "Missing Keg file in current directory")
+      (keg--princ "Keg file is required to exec `%s' command" op)
+      (keg--princ "Exec `keg init' to create Keg file")
+      (kill-emacs 1))
+     ((and
+       (not (memq op keg-no-install-commands))
+       (not (file-directory-p user-emacs-directory)))
+      (keg--princ "As missing .keg sandbox, install dependencies")
+      (make-directory user-emacs-directory 'parent)
+      (keg-main-install)))
+
     (cond
      ((null op)
       (keg-main-install))
-     ((memq (intern op) (keg-subcommands))
-      (apply (intern (format "keg-main-%s" op)) args))
+     ((memq op (keg-subcommands))
+      (apply (intern (format "keg-main-%s" (symbol-name op))) args))
      (t
       (keg-main-help)
       (keg--princ)
