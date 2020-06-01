@@ -147,7 +147,7 @@ See `package-build--config-file-list' from MELPA package-build."
 (defun keg-build--expand-source-file-list (&optional recipe dir)
   "Resolve source file from RECIPE in DIR.
 See `package-build--expand-source-file-list' from MELPA package-build."
-  (mapcar 'car
+  (mapcar #'car
           (keg-build--expand-file-specs
            (or dir default-directory)
            (keg-build--config-file-list recipe))))
