@@ -706,7 +706,7 @@ USAGE: keg debug"
                                 (or load-file-name
                                     byte-compile-current-file)))))
     (cond
-     ((eq nil op)
+     ((null op)
       (keg-main-install))
      ((memq (intern op) (keg-subcommands))
       (apply (intern (format "keg-main-%s" op)) args))
