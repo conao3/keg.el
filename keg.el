@@ -591,7 +591,9 @@ ARGS first value is specified package.
 USAGE: keg build [PACKAGE]"
   (keg--argument-count-check -1 1 'build args)
   (dolist (file (keg-files (car args)))
-    (byte-recompile-file file 'force 0)))
+    (if (fboundp 'byte-recompile-file)
+        (byte-recompile-file file 'force 0)
+      (byte-compile-file file))))
 
 (defun keg-main-clean-elc (&rest args)
   "Clean `.elc' files.
