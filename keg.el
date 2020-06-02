@@ -733,7 +733,6 @@ USAGE: keg debug"
          (package-user-dir (locate-user-emacs-file "elpa")))
     (package-initialize)
     (add-to-list 'load-path (expand-file-name default-directory))
-    (add-to-list 'load-path keg-directory)
 
     (cond
      ((and
