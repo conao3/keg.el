@@ -725,8 +725,6 @@ USAGE: keg debug"
   "Init `keg' and exec subcommand."
   (unless noninteractive
     (error "`keg-main' is to be used only with --batch"))
-  (when (string= "--" (car command-line-args-left))
-    (pop command-line-args-left))
   (let* ((opraw (car command-line-args-left))
          (op (when opraw (intern opraw)))
          (args (cdr command-line-args-left))
