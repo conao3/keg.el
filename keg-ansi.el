@@ -90,6 +90,22 @@
   "Return char for EFFECT."
   (cdr (assoc effect keg-ansi-csis)))
 
+(defun keg-ansi-apply (effect-or-code format-string &rest objects)
+  "Apply EFFECT-OR-CODE to text.
+FORMAT-STRING and OBJECTS are processed same as `apply'."
+  (let ((code (if (numberp effect-or-code)
+                  effect-or-code
+                (keg-ansi--code effect-or-code)))
+        (text (apply 'format format-string objects)))
+    (format "\e[%dm%s\e[%sm" code text keg-ansi-reset)))
+
+(defun keg-ansi-csi-apply (effect-or-char &optional reps)
+  "Apply EFFECT-OR-CHAR REPS (1 default) number of times."
+  (let ((char (if (symbolp effect-or-char)
+                  (keg-ansi--char effect-or-char)
+                effect-or-char)))
+    (format "\u001b[%d%s" (or reps 1) char)))
+
 (provide 'keg-ansi)
 
 ;; Local Variables:
