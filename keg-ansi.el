@@ -77,6 +77,19 @@
 
 (defconst keg-ansi-reset 0 "Ansi code for reset.")
 
+
+
+(defun keg-ansi--code (effect)
+  "Return code for EFFECT."
+  (or
+   (cdr (assoc effect keg-ansi-colors))
+   (cdr (assoc effect keg-ansi-on-colors))
+   (cdr (assoc effect keg-ansi-styles))))
+
+(defun keg-ansi--char (effect)
+  "Return char for EFFECT."
+  (cdr (assoc effect keg-ansi-csis)))
+
 (provide 'keg-ansi)
 
 ;; Local Variables:
