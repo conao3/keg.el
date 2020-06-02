@@ -527,7 +527,7 @@ USAGE: keg init"
   (keg--princ "Successful creating Keg file"))
 
 (defun keg-main-install (&rest args)
-  "Install package dependencies in .keg sandbox folder.
+  "Install PACKAGE dependencies in .keg sandbox folder.
 ARGS is CLI argument.
 
 USAGE: keg install [PACKAGE]"
@@ -579,7 +579,7 @@ USAGE: keg Emacs [ARGS...]"
   (apply #'keg-main-exec "emacs" args))
 
 (defun keg-main-eval (&rest args)
-  "Eval SEXP with batch Emacs with appropriate environment variables.
+  "Eval SEXP via batch Emacs with appropriate environment variables.
 ARGS are (separated) SEXP.
 
 USAGE: keg eval [SEXP]"
@@ -665,7 +665,7 @@ USAGE: keg info [PACKAGE]"
                          (keg--alist-get 'keg--devs reqinfo))))))
 
 (defun keg-main-load-path (&rest args)
-  "Show Emacs appropriate `load-path' same foramt as PATH.
+  "Show Emacs appropriate `load-path' same format as PATH.
 ARGS is CLI argument.
 
 USAGE: keg `load-path'"
