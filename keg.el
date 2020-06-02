@@ -32,6 +32,7 @@
 (require 'lisp-mnt)
 (require 'subr-x)
 (require 'package)
+(require 'keg-ansi)
 
 (defgroup keg nil
   "Modern Elisp package development system."
