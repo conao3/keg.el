@@ -561,7 +561,8 @@ ARGS is list of string.
 
 USAGE: keg exec COMMAND [ARGS...]"
   (keg--argument-count-check 1 -1 'exec args)
-  (let ((proc (keg-start-process (string-join args " "))))
+  (let ((proc (keg-start-process
+               (mapconcat #'shell-quote-argument args " "))))
     (set-process-sentinel
      proc
      (lambda (proc _event)
@@ -735,6 +736,7 @@ USAGE: keg debug"
     (package-initialize)
     (add-to-list 'load-path (expand-file-name default-directory))
     (add-to-list 'load-path keg-directory)
+
     (cond
      ((and
        (memq op keg-global-commands)
