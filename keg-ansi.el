@@ -34,6 +34,49 @@
   :group 'convenience
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
+(defconst keg-ansi-colors
+  '((black   . 30)
+    (red     . 31)
+    (green   . 32)
+    (yellow  . 33)
+    (blue    . 34)
+    (magenta . 35)
+    (cyan    . 36)
+    (white   . 37))
+  "List of text colors.")
+
+(defconst keg-ansi-on-colors
+  '((on-black   . 40)
+    (on-red     . 41)
+    (on-green   . 42)
+    (on-yellow  . 43)
+    (on-blue    . 44)
+    (on-magenta . 45)
+    (on-cyan    . 46)
+    (on-white   . 47))
+  "List of colors to draw text on.")
+
+(defconst keg-ansi-styles
+  '((bold       . 1)
+    (dark       . 2)
+    (italic     . 3)
+    (underscore . 4)
+    (blink      . 5)
+    (rapid      . 6)
+    (contrary   . 7)
+    (concealed  . 8)
+    (strike     . 9))
+  "List of styles.")
+
+(defconst keg-ansi-csis
+  '((up       . "A")
+    (down     . "B")
+    (forward  . "C")
+    (backward . "D"))
+  "List of cursor navigation.")
+
+(defconst keg-ansi-reset 0 "Ansi code for reset.")
+
 (provide 'keg-ansi)
 
 ;; Local Variables:
