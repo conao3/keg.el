@@ -38,6 +38,14 @@
   :group 'convenience
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
+(defconst keg-directory
+  (eval-when-compile
+    (expand-file-name
+     (file-name-directory (or load-file-name
+                              buffer-file-name
+                              byte-compile-current-file))))
+  "Path to keg root.")
+
 
 ;;; Keg file
 
@@ -492,8 +500,7 @@ USAGE: keg version"
   (keg--princ
    (format "Keg %s running on Emacs %s"
            (eval-when-compile
-             (lm-version (or load-file-name
-                             byte-compile-current-file)))
+             (lm-version (expand-file-name "keg.el" keg-directory)))
            emacs-version)))
 
 (defun keg-main-init (&rest args)
@@ -722,12 +729,7 @@ USAGE: keg debug"
          (package-user-dir (locate-user-emacs-file "elpa")))
     (package-initialize)
     (add-to-list 'load-path (expand-file-name default-directory))
-    (add-to-list 'load-path (eval-when-compile
-                              (expand-file-name
-                               (file-name-directory
-                                (or buffer-file-name
-                                    load-file-name
-                                    byte-compile-current-file)))))
+    (add-to-list 'load-path keg-directory)
     (cond
      ((and
        (memq op keg-global-commands)
