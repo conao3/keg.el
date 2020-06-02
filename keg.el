@@ -46,6 +46,13 @@
                               byte-compile-current-file))))
   "Path to keg root.")
 
+(defvar keg-archives
+  '((gnu . "https://elpa.gnu.org/packages/")
+    (org . "https://orgmode.org/elpa/")
+    (melpa . "https://melpa.org/packages/")
+    (celpa . "https://celpa.conao3.com/packages/"))
+  "Alist for symbol to ELPA url.")
+
 
 ;;; Keg file
 
@@ -200,18 +207,15 @@ Return value is below form:
 
 (defun keg-build--package-archives (&optional syms)
   "Return appropriate `packages-archives' using Keg sources value.
-If SYMS is omitted, assume ELPA symbol from reading Keg file."
-  (let ((urls '((gnu . "https://elpa.gnu.org/packages/")
-                (org . "https://orgmode.org/elpa/")
-                (melpa . "https://melpa.org/packages/")
-                (celpa . "https://celpa.conao3.com/packages/"))))
-    (mapcar
-     (lambda (elm)
-       (let ((url (keg--alist-get elm urls)))
-         (if (not url)
-             (error "Source %s is unknown" elm)
-           `(,(symbol-name elm) . ,url))))
-     (or syms (keg-file-read-section 'sources)))))
+If SYMS is omitted, assume ELPA symbol from reading Keg file.
+See `keg-archives' for symbol url mapping."
+  (mapcar
+   (lambda (elm)
+     (let ((url (keg--alist-get elm keg-archives)))
+       (if (not url)
+           (error "Source %s is unknown" elm)
+         `(,(symbol-name elm) . ,url))))
+   (or syms (keg-file-read-section 'sources))))
 
 (defun keg-build--resolve-dependency ()
   "Fetch dependency in .keg folder.
