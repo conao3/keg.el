@@ -170,7 +170,7 @@ This function is `alist-get' polifill for Emacs < 25.1."
   (let ((x (assq key alist)))
     (if x (cdr x) default)))
 
-(defun keg-ansi-apply (effect-or-code format-string &rest objects)
+(defun keg-ansi (effect-or-code format-string &rest objects)
   "Apply EFFECT-OR-CODE to text.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 1))
@@ -180,7 +180,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
         (text (apply 'format format-string objects)))
     (format "\e[%dm%s\e[0m" code text)))
 
-(defun keg-ansi-csi-apply (effect-or-char &rest args)
+(defun keg-ansi-csi (effect-or-char &rest args)
   "Apply EFFECT-OR-CHAR ARGS (1 default) number of times."
   (declare (indent 1))
   (let ((code (if (stringp effect-or-char)
@@ -188,21 +188,21 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                 (keg-ansi--alist-get effect-or-char keg-ansi-csis))))
     (concat "\e[" (when args (mapconcat #'prin1-to-string args ";")) code)))
 
-(defun keg-ansi-256-apply (code format-string &rest objects)
+(defun keg-ansi-256 (code format-string &rest objects)
   "Apply 256-color CODE to text.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 1))
   (let ((text (apply 'format format-string objects)))
     (format "\e[38;5;%dm%s\e[0m" code text)))
 
-(defun keg-ansi-256-bg-apply (code format-string &rest objects)
+(defun keg-ansi-256-bg (code format-string &rest objects)
   "Apply 256-color CODE to text background.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 1))
   (let ((text (apply 'format format-string objects)))
     (format "\e[48;5;%dm%s\e[0m" code text)))
 
-(defun keg-ansi-rgb-apply (r g b format-string &rest objects)
+(defun keg-ansi-rgb (r g b format-string &rest objects)
   "Apply R G B color to text.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 3))
@@ -210,7 +210,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
         (text (apply 'format format-string objects)))
     (format "\e[38;2;%dm%s\e[0m" code text)))
 
-(defun keg-ansi-rgb-bg-apply (r g b format-string &rest objects)
+(defun keg-ansi-rgb-bg (r g b format-string &rest objects)
   "Apply R G B color to text background.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 3))
@@ -227,12 +227,12 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                      (,@(mapcar
                          (lambda (name)
                            `(,name (format-string &rest args)
-                                   `(keg-ansi-apply ',',name ,format-string ,@args)))
+                                   `(keg-ansi ',',name ,format-string ,@args)))
                          (mapcar #'car keg-ansi-codes))
                       ,@(mapcar
                          (lambda (name)
                            `(,name (&rest args)
-                                   `(keg-ansi-csi-apply ',',name ,@args)))
+                                   `(keg-ansi-csi ',',name ,@args)))
                          (mapcar #'car keg-ansi-csis)))
                    magic-spacer         ; must be wrap progn
                    ,@(cdr parsed-body))
