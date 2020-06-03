@@ -177,10 +177,13 @@ This function is `alist-get' polifill for Emacs < 25.1."
   "Apply EFFECT-OR-CODE to text.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 1))
-  (let ((code (if (numberp effect-or-code)
-                  effect-or-code
-                (keg-ansi--alist-get effect-or-code keg-ansi-codes)))
-        (text (apply 'format format-string objects)))
+  (let* ((str (if (stringp format-string)
+                  format-string
+                (prin1-to-string format-string)))
+         (code (if (numberp effect-or-code)
+                   effect-or-code
+                 (keg-ansi--alist-get effect-or-code keg-ansi-codes)))
+         (text (apply 'format str objects)))
     (format "\e[%dm%s\e[0m" code text)))
 
 (defun keg-ansi-csi (effect-or-char &rest args)
@@ -195,30 +198,42 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
   "Apply 256-color CODE to text.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 1))
-  (let ((text (apply 'format format-string objects)))
+  (let* ((str (if (stringp format-string)
+                  format-string
+                (prin1-to-string format-string)))
+         (text (apply 'format str objects)))
     (format "\e[38;5;%dm%s\e[0m" code text)))
 
 (defun keg-ansi-256-bg (code format-string &rest objects)
   "Apply 256-color CODE to text background.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 1))
-  (let ((text (apply 'format format-string objects)))
+  (let* ((str (if (stringp format-string)
+                  format-string
+                (prin1-to-string format-string)))
+         (text (apply 'format str objects)))
     (format "\e[48;5;%dm%s\e[0m" code text)))
 
 (defun keg-ansi-rgb (r g b format-string &rest objects)
   "Apply R G B color to text.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 3))
-  (let ((code (mapconcat #'prin1-to-string (list r g b) ";"))
-        (text (apply 'format format-string objects)))
+  (let* ((str (if (stringp format-string)
+                  format-string
+                (prin1-to-string format-string)))
+         (code (mapconcat #'prin1-to-string (list r g b) ";"))
+         (text (apply 'format str objects)))
     (format "\e[38;2;%dm%s\e[0m" code text)))
 
 (defun keg-ansi-rgb-bg (r g b format-string &rest objects)
   "Apply R G B color to text background.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (declare (indent 3))
-  (let ((code (mapconcat #'prin1-to-string (list r g b) ";"))
-        (text (apply 'format format-string objects)))
+  (let* ((str (if (stringp format-string)
+                  format-string
+                (prin1-to-string format-string)))
+         (code (mapconcat #'prin1-to-string (list r g b) ";"))
+         (text (apply 'format str objects)))
     (format "\e[48;2;%dm%s\e[0m" code text)))
 
 (defmacro with-keg-ansi (&rest body)
