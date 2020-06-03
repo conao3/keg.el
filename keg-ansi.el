@@ -133,7 +133,9 @@
     (on-b-cyan    . 106) (on-bright-cyan    . 106)
     (on-b-white   . 107) (on-bright-white   . 107)
     ;; ( . 108)
-    (on-b-default . 109) (on-bright-default . 109)))
+    (on-b-default . 109) (on-bright-default . 109))
+  "List of SGR (Select graphic rendition) codes.
+See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters")
 
 (defconst keg-ansi-csis
   '((up         . "A")
@@ -156,7 +158,8 @@
 
     (scroll-next . "S")
     (scroll-back . "T"))
-  "List of cursor navigation.")
+  "List of CSI (Control sequence introducer) codes.
+See https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences")
 
 
 
