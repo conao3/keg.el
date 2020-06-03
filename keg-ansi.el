@@ -106,6 +106,19 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                 effect-or-char)))
     (format "\u001b[%d%s" (or reps 1) char)))
 
+(defmacro with-keg-ansi (&rest body)
+  "Exec BODY with keg-ansi DSL."
+  (let* ((parsed-body (macroexp-parse-body body))
+         (_declarations (car parsed-body))
+         (exps (macroexpand-all
+                `(cl-macrolet
+                     ((red (format-string &rest args)
+                           `(keg-ansi-apply 'red ,format-string ,@args)))
+                    magic-spacer        ; must be wrap progn
+                   ,@(cdr parsed-body))
+                macroexpand-all-environment)))
+    `(concat ,@(cddr exps))))           ; drop 'progn and spacer
+
 (provide 'keg-ansi)
 
 ;; Local Variables:
