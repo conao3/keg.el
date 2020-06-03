@@ -156,8 +156,6 @@
     (scroll-back . "T"))
   "List of cursor navigation.")
 
-(defconst keg-ansi-reset 0 "Ansi code for reset.")
-
 
 
 (defun keg-ansi--alist-get (key alist &optional default)
@@ -177,7 +175,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                   effect-or-code
                 (keg-ansi--alist-get effect-or-code keg-ansi-codes)))
         (text (apply 'format format-string objects)))
-    (format "\e[%dm%s\e[%sm" code text keg-ansi-reset)))
+    (format "\e[%dm%s\e[0m" code text)))
 
 (defun keg-ansi-csi-apply (effect-or-char &optional reps)
   "Apply EFFECT-OR-CHAR REPS (1 default) number of times."
