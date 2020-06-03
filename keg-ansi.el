@@ -160,6 +160,16 @@
 
 
 
+(defun keg-ansi--alist-get (key alist &optional default)
+  "Find the first element of ALIST whose `car' equals KEY and return its `cdr'.
+If KEY is not found in ALIST, return DEFAULT.
+For backward compatibility, TESTFN is always `eq'.
+
+This function is `alist-get' polifill for Emacs < 25.1."
+  (declare (indent 1))
+  (let ((x (assq key alist)))
+    (if x (cdr x) default)))
+
 (defun keg-ansi--code (effect)
   "Return code for EFFECT."
   (cdr (assoc effect keg-ansi-codes)))
