@@ -239,9 +239,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
 
 (defmacro with-keg-ansi (&rest body)
   "Exec BODY with keg-ansi DSL."
-  (let* ((parsed-body (macroexp-parse-body body))
-         (_declarations (car parsed-body))
-         (exps (macroexpand-all
+  (let* ((exps (macroexpand-all
                 `(cl-macrolet
                      (,@(mapcar
                          (lambda (name)
@@ -262,7 +260,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                       (rgb-bg (code format-string &rest objects)
                               `(keg-ansi-rgb-bg ,code ,format-string ,@objects)))
                    magic-spacer         ; must be wrap progn
-                   ,@(cdr parsed-body))
+                   ,@body)
                 macroexpand-all-environment)))
     `(concat ,@(cddr exps))))           ; drop 'progn and spacer
 
