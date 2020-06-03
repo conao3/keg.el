@@ -184,7 +184,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
   (let ((char (if (stringp effect-or-char)
                   effect-or-char
                 (keg-ansi--alist-get effect-or-char keg-ansi-csis))))
-    (format "\u001b[%d%s" (or reps 1) char)))
+    (format "\e[%d%s" (or reps 1) char)))
 
 (defmacro with-keg-ansi (&rest body)
   "Exec BODY with keg-ansi DSL."
