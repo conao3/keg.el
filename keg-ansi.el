@@ -192,9 +192,17 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
          (_declarations (car parsed-body))
          (exps (macroexpand-all
                 `(cl-macrolet
-                     ((red (format-string &rest args)
-                           `(keg-ansi-apply 'red ,format-string ,@args)))
-                    magic-spacer        ; must be wrap progn
+                     (,@(mapcar
+                         (lambda (name)
+                           `(,name (format-string &rest args)
+                                   `(keg-ansi-apply ',',name ,format-string ,@args)))
+                         (mapcar #'car keg-ansi-codes))
+                      ,@(mapcar
+                         (lambda (name)
+                           `(,name (&rest args)
+                                   `(keg-ansi-csi-apply ',',name ,@args)))
+                         (mapcar #'car keg-ansi-csis)))
+                   magic-spacer         ; must be wrap progn
                    ,@(cdr parsed-body))
                 macroexpand-all-environment)))
     `(concat ,@(cddr exps))))           ; drop 'progn and spacer
