@@ -28,6 +28,7 @@
     - [[#debug][debug]]
   - [[#keg-emacs-package][keg Emacs package]]
   - [[#keg-mode-emacs-major-mode][keg-mode Emacs major-mode]]
+  - [[#keg-ansi-library][keg-ansi library]]
 - [[#customize][Customize]]
 - [[#information][Information]]
   - [[#community][Community]]
@@ -150,6 +151,177 @@ Show debug info.
 
 ** keg-mode Emacs major mode
 - keg-mode :: Major-mode for =Keg= file
+
+** keg-ansi library
+=keg-ansi= is lightweight "face -> ANSI escape code" library.
+
+There're rejeep's [[https://github.com/rejeep/ansi.el][ansi]] library (and [[https://github.com/cask/cask][cask]] use it).
+But I rewrite whole code from scratch for more styles, more flexibility.
+
+Here is constants. And these constants could used as DSL op code.
+
+#+begin_src emacs-lisp
+  (defconst keg-ansi-codes
+    '((reset     . 0)
+      (bold      . 1)
+      (faint     . 2)
+      (italic    . 3)
+      (underline . 4)
+      (blink     . 5)
+      (r-blink   . 6) (rapid-blink . 6)
+      (invert    . 7)
+      (conceal   . 8)
+      (strike    . 9)
+
+      ;; ...
+
+      (black   . 30)
+      (red     . 31)
+      (green   . 32)
+      (yellow  . 33)
+      (blue    . 34)
+      (magenta . 35)
+      (cyan    . 36)
+      (white   . 37)
+      ;; ( . 38)                ; 256 color / 24bit color
+      (default . 39)
+
+      (on-black   . 40)
+      (red-bg     . 41)
+      (green-bg   . 42)
+      (yellow-bg  . 43)
+      (blue-bg    . 44)
+      (magenta-bg . 45)
+      (cyan-bg    . 46)
+      (white-bg   . 47)
+      ;; ( . 48)                ; 256 color / 24bit color
+      (default-bg . 49)
+
+      ;; ...
+
+      (b-black   . 90) (bright-black   . 90)
+      (b-red     . 91) (bright-red     . 91)
+      (b-green   . 92) (bright-green   . 92)
+      (b-yellow  . 93) (bright-yellow  . 93)
+      (b-blue    . 94) (bright-blue    . 94)
+      (b-magenta . 95) (bright-magenta . 95)
+      (b-cyan    . 96) (bright-cyan    . 96)
+      (b-white   . 97) (bright-white   . 97)
+      ;; ( . 98)
+      (b-default . 99) (bright-default . 97)
+
+      (b-black-bg   . 100) (bright-black-bg   . 100)
+      (b-red-bg     . 101) (bright-red-bg     . 101)
+      (b-green-bg   . 102) (bright-green-bg   . 102)
+      (b-yellow-bg  . 103) (bright-yellow-bg  . 103)
+      (b-blue-bg    . 104) (bright-blue-bg    . 104)
+      (b-magenta-bg . 105) (bright-magenta-bg . 105)
+      (b-cyan-bg    . 106) (bright-cyan-bg    . 106)
+      (b-white-bg   . 107) (bright-white-bg   . 107)
+      ;; ( . 108)
+      (b-default-bg . 109) (bright-default-bg . 109))
+    "List of SGR (Select graphic rendition) codes.
+  See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters")
+
+  (defconst keg-ansi-csis
+    '((up         . "A")
+      (down       . "B")
+      (forward    . "C")
+      (backward   . "D")
+      (ahead-down . "E") (beginning-of-line-down . "E")
+      (ahead-up   . "F") (beginning-of-line-up   . "F")
+      (column     . "G") (move-at-column . "G")
+      (point      . "H") (move-at-point . "H") ; require 2 arguments (x,y)
+
+      (clear      . "J")
+      ;; 0 (default): clear forward all
+      ;; 1: clear behind all
+      ;; 2: clear all
+      (clear-line . "K")
+      ;; 0 (default): clear forward
+      ;; 1: clear behind
+      ;; 2: clear line
+
+      (scroll-next . "S")
+      (scroll-back . "T"))
+    "List of CSI (Control sequence introducer) codes.
+  See https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences")
+#+end_src
+
+*** Examples of keg-ansi
+**** low level API
+#+begin_src emacs-lisp
+  (keg-ansi 'red "asdf")           ; red foreground
+  ;;=> "\e[38[31masdf\e[38[0m"
+
+  (keg-ansi 'bold
+    (keg-ansi 'red "asdf"))        ; red foreground and bold style
+  ;;=> "\e[38[1m\e[38[31masdf\e[38[0m\e[38[0m"
+
+  (keg-ansi-256 100 "asdf")        ; number of 100 color
+  ;;=> "\e[38[38;5;100masdf\e[38[0m"
+
+  (keg-ansi-rgb 50 80 100 "asdf")  ; (RGB) = (50 80 100) color
+  ;;=> "\e[38[38;2;50;80;100masdf\e[38[0m"
+
+  (keg-ansi-csi 'up)               ; move cursor up
+  ;;=> "\e[38[A"
+
+  (keg-ansi-csi 'down 5)           ; move cursor down 5 times
+  ;;=> "\e[38[5B"
+
+  (keg-ansi-csi 'point 10 5)       ; move cursor (x,y) = (10,5)
+  ;;=> "\e[38[10;5H"
+#+end_src
+
+**** with-keg-ansi macro
+And you can use =with-keg-ansi= for using DSL.
+#+begin_src emacs-lisp
+  (with-keg-ansi
+   (red "asdf"))
+  ;;=> "\e[38[31masdf\e[38[0m"
+
+  (with-keg-ansi
+   (bold (red "asdf")))
+  ;;=> "\e[38[1m\e[38[31masdf\e[38[0m\e[38[0m"
+
+  (with-keg-ansi
+   (256-color 100 "asdf"))
+  ;;=> "\e[38[38;5;100masdf\e[38[0m"
+
+  (with-keg-ansi
+   (rgb-color 50 80 100 "asdf"))
+  ;;=> "\e[38[38;2;50;80;100masdf\e[38[0m"
+#+end_src
+
+**** Interactive examples
+One-line example.
+#+begin_src emacs-lisp
+  emacs --batch -l keg-ansi.el --eval="(princ (with-keg-ansi \"Keg-\" (cyan \"ansi\") \": \" (red \"ver\") (green \"sion\") \" \" (blink (green-bg (bold (yellow \"v0.0.1\")))) \"\\n\"))"
+#+end_src
+[[https://github.com/conao3/keg.el][https://raw.githubusercontent.com/conao3/files/master/blob/keg.el/keg-ansi-simple.png]]
+
+Complex, 256 colors example.
+#+begin_src shell
+  emacs --batch -l keg-ansi.el --eval="
+  (let ((fn (lambda (col i j offset)
+              (let ((code (+ (* col i) j offset)))
+                (princ (keg-ansi-256 code (format \"%02x \" code)))))))
+    (dotimes (j 16) (funcall fn 16 0 j 0)) (princ \"\\n\")
+    (dotimes (i 6)  (dotimes (j 36) (funcall fn 36 i j 16)) (princ \"\\n\"))
+    (dotimes (j 24) (funcall fn 16 0 j 232)) (princ \"\\n\"))"
+#+end_src
+[[https://github.com/conao3/keg.el][https://raw.githubusercontent.com/conao3/files/master/blob/keg.el/keg-ansi-complex.png]]
+
+Complex, 24bit colors example.
+#+begin_src shell
+  emacs --batch -l keg-ansi.el --eval="
+  (dotimes (i 16)
+    (dotimes (j 32)
+      (princ (keg-ansi-rgb-bg (ash i 4) (ash j 3) 255 \" \")))
+    (princ \"\\n\"))"
+#+end_src
+[[https://github.com/conao3/keg.el][https://raw.githubusercontent.com/conao3/files/master/blob/keg.el/keg-ansi-hue.png]]
 
 * Customize
 
