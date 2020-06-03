@@ -184,7 +184,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
   (let ((code (if (stringp effect-or-char)
                   effect-or-char
                 (keg-ansi--alist-get effect-or-char keg-ansi-csis))))
-    (concat "\e[" (when args (string-join args ";")) code)))
+    (concat "\e[" (when args (mapconcat #'prin1-to-string args ";")) code)))
 
 (defmacro with-keg-ansi (&rest body)
   "Exec BODY with keg-ansi DSL."
