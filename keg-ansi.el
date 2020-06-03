@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'subr-x)
+
 (defgroup keg-ansi nil
   "Utility for ANSI terminal escape codes."
   :group 'convenience
@@ -177,12 +179,12 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
         (text (apply 'format format-string objects)))
     (format "\e[%dm%s\e[0m" code text)))
 
-(defun keg-ansi-csi-apply (effect-or-char &optional reps)
-  "Apply EFFECT-OR-CHAR REPS (1 default) number of times."
-  (let ((char (if (stringp effect-or-char)
+(defun keg-ansi-csi-apply (effect-or-char &rest args)
+  "Apply EFFECT-OR-CHAR ARGS (1 default) number of times."
+  (let ((code (if (stringp effect-or-char)
                   effect-or-char
                 (keg-ansi--alist-get effect-or-char keg-ansi-csis))))
-    (format "\e[%d%s" (or reps 1) char)))
+    (concat "\e[" (when args (string-join args ";")) code)))
 
 (defmacro with-keg-ansi (&rest body)
   "Exec BODY with keg-ansi DSL."
