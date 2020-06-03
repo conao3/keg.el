@@ -34,45 +34,126 @@
   :group 'convenience
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
-(defconst keg-ansi-colors
-  '((black   . 30)
+(defconst keg-ansi-codes
+  '((reset     . 0)
+    (bold      . 1)
+    (faint     . 2)
+    (italic    . 3)
+    (underline . 4)
+    (blink     . 5)
+    (r-blink   . 6) (rapid-blink . 6)
+    (invert    . 7)
+    (conceal   . 8)
+    (strike    . 9)
+
+    (font-0    . 10) (default-font . 10)
+    (font-1    . 11)
+    (font-2    . 12)
+    (font-3    . 13)
+    (font-4    . 14)
+    (font-5    . 15)
+    (font-6    . 16)
+    (font-7    . 17)
+    (font-8    . 18)
+    (font-9    . 19)
+    (font-10   . 20)
+
+    (bold-off      . 21) (d-underline . 21) (double-underline . 21)
+    (faint-off     . 22)
+    (italic-off    . 23)
+    (underline-off . 24)
+    (blink-off     . 25)
+    (r-blink-off   . 26) (rapid-blink-off . 26)
+    (invert-off    . 27)
+    (conceal-off   . 28)
+    (strike-off    . 29)
+
+    (black   . 30)
     (red     . 31)
     (green   . 32)
     (yellow  . 33)
     (blue    . 34)
     (magenta . 35)
     (cyan    . 36)
-    (white   . 37))
-  "List of text colors.")
+    (white   . 37)
+    ;; ( . 38)                ; 256 color / 24bit color
+    (default . 39)
 
-(defconst keg-ansi-on-colors
-  '((on-black   . 40)
+    (on-black   . 40)
     (on-red     . 41)
     (on-green   . 42)
     (on-yellow  . 43)
     (on-blue    . 44)
     (on-magenta . 45)
     (on-cyan    . 46)
-    (on-white   . 47))
-  "List of colors to draw text on.")
+    (on-white   . 47)
+    ;; ( . 48)                ; 256 color / 24bit color
+    (on-default . 49)
 
-(defconst keg-ansi-styles
-  '((bold       . 1)
-    (dark       . 2)
-    (italic     . 3)
-    (underscore . 4)
-    (blink      . 5)
-    (rapid      . 6)
-    (contrary   . 7)
-    (concealed  . 8)
-    (strike     . 9))
-  "List of styles.")
+    ;; ( . 50)
+    (frame . 51)
+    (circle . 52)
+    (overline . 53)
+    (frame-off . 54) (circle-off . 54)
+    (overline-off . 55)
+
+    ;; ( . 56)
+    ;; ( . 57)
+    ;; ( . 58)
+    ;; ( . 59)
+
+    (ideogram-underline . 60) (right-side-line . 60)
+    (ideogram-double-underline . 61) (double-line-right-side . 61)
+    (ideogram-overline . 62) (left-side-line . 62)
+    (ideogram-double-overline . 63) (double-line-left-side . 63)
+    (ideogram-stress-marking . 64)
+    (ideogram-off . 65)
+
+    ;; ( . 66) - ( . 89)
+
+    (b-black   . 90) (bright-black   . 90)
+    (b-red     . 91) (bright-red     . 91)
+    (b-green   . 92) (bright-green   . 92)
+    (b-yellow  . 93) (bright-yellow  . 93)
+    (b-blue    . 94) (bright-blue    . 94)
+    (b-magenta . 95) (bright-magenta . 95)
+    (b-cyan    . 96) (bright-cyan    . 96)
+    (b-white   . 97) (bright-white   . 97)
+    ;; ( . 98)
+    (b-default . 99) (bright-default . 97)
+
+    (on-b-black   . 100) (on-bright-black   . 100)
+    (on-b-red     . 101) (on-bright-red     . 101)
+    (on-b-green   . 102) (on-bright-green   . 102)
+    (on-b-yellow  . 103) (on-bright-yellow  . 103)
+    (on-b-blue    . 104) (on-bright-blue    . 104)
+    (on-b-magenta . 105) (on-bright-magenta . 105)
+    (on-b-cyan    . 106) (on-bright-cyan    . 106)
+    (on-b-white   . 107) (on-bright-white   . 107)
+    ;; ( . 108)
+    (on-b-default . 109) (on-bright-default . 109)))
 
 (defconst keg-ansi-csis
-  '((up       . "A")
-    (down     . "B")
-    (forward  . "C")
-    (backward . "D"))
+  '((up         . "A")
+    (down       . "B")
+    (forward    . "C")
+    (backward   . "D")
+    (ahead-down . "E") (beginning-of-line-down . "E")
+    (ahead-up   . "F") (beginning-of-line-up   . "F")
+    (column     . "G") (move-at-column . "G")
+    (point      . "H") (move-at-point . "H") ; require 2 arguments (x,y)
+
+    (clear      . "J")
+    ;; 0 (default): clear forward all
+    ;; 1: clear behind all
+    ;; 2: clear all
+    (clear-line . "K")
+    ;; 0 (default): clear forward
+    ;; 1: clear behind
+    ;; 2: clear line
+
+    (scroll-next . "S")
+    (scroll-back . "T"))
   "List of cursor navigation.")
 
 (defconst keg-ansi-reset 0 "Ansi code for reset.")
@@ -81,10 +162,7 @@
 
 (defun keg-ansi--code (effect)
   "Return code for EFFECT."
-  (or
-   (cdr (assoc effect keg-ansi-colors))
-   (cdr (assoc effect keg-ansi-on-colors))
-   (cdr (assoc effect keg-ansi-styles))))
+  (cdr (assoc effect keg-ansi-codes)))
 
 (defun keg-ansi--char (effect)
   "Return char for EFFECT."
