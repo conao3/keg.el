@@ -186,6 +186,32 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                 (keg-ansi--alist-get effect-or-char keg-ansi-csis))))
     (concat "\e[" (when args (mapconcat #'prin1-to-string args ";")) code)))
 
+(defun keg-ansi-256-apply (code format-string &rest objects)
+  "Apply 256-color CODE to text.
+FORMAT-STRING and OBJECTS are processed same as `apply'."
+  (let ((text (apply 'format format-string objects)))
+    (format "\e[38;5;%dm%s\e[0m" code text)))
+
+(defun keg-ansi-256-bg-apply (code format-string &rest objects)
+  "Apply 256-color CODE to text background.
+FORMAT-STRING and OBJECTS are processed same as `apply'."
+  (let ((text (apply 'format format-string objects)))
+    (format "\e[48;5;%dm%s\e[0m" code text)))
+
+(defun keg-ansi-rgb-apply (r g b format-string &rest objects)
+  "Apply R G B color to text.
+FORMAT-STRING and OBJECTS are processed same as `apply'."
+  (let ((code (mapconcat #'prin1-to-string (list r g b) ";"))
+        (text (apply 'format format-string objects)))
+    (format "\e[38;2;%dm%s\e[0m" code text)))
+
+(defun keg-ansi-rgb-bg-apply (r g b format-string &rest objects)
+  "Apply R G B color to text background.
+FORMAT-STRING and OBJECTS are processed same as `apply'."
+  (let ((code (mapconcat #'prin1-to-string (list r g b) ";"))
+        (text (apply 'format format-string objects)))
+    (format "\e[48;2;%dm%s\e[0m" code text)))
+
 (defmacro with-keg-ansi (&rest body)
   "Exec BODY with keg-ansi DSL."
   (let* ((parsed-body (macroexp-parse-body body))
