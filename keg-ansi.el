@@ -202,7 +202,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                   format-string
                 (prin1-to-string format-string)))
          (text (apply 'format str objects)))
-    (format "\e[38;5;%dm%s\e[0m" code text)))
+    (format "\e[38;5;%sm%s\e[0m" code text)))
 
 (defun keg-ansi-256-bg (code format-string &rest objects)
   "Apply 256-color CODE to text background.
@@ -212,7 +212,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                   format-string
                 (prin1-to-string format-string)))
          (text (apply 'format str objects)))
-    (format "\e[48;5;%dm%s\e[0m" code text)))
+    (format "\e[48;5;%sm%s\e[0m" code text)))
 
 (defun keg-ansi-rgb (r g b format-string &rest objects)
   "Apply R G B color to text.
@@ -223,7 +223,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                 (prin1-to-string format-string)))
          (code (mapconcat #'prin1-to-string (list r g b) ";"))
          (text (apply 'format str objects)))
-    (format "\e[38;2;%dm%s\e[0m" code text)))
+    (format "\e[38;2;%sm%s\e[0m" code text)))
 
 (defun keg-ansi-rgb-bg (r g b format-string &rest objects)
   "Apply R G B color to text background.
@@ -234,7 +234,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
                 (prin1-to-string format-string)))
          (code (mapconcat #'prin1-to-string (list r g b) ";"))
          (text (apply 'format str objects)))
-    (format "\e[48;2;%dm%s\e[0m" code text)))
+    (format "\e[48;2;%sm%s\e[0m" code text)))
 
 (defmacro with-keg-ansi (&rest body)
   "Exec BODY with keg-ansi DSL."
