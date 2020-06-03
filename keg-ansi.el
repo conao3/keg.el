@@ -170,28 +170,20 @@ This function is `alist-get' polifill for Emacs < 25.1."
   (let ((x (assq key alist)))
     (if x (cdr x) default)))
 
-(defun keg-ansi--code (effect)
-  "Return code for EFFECT."
-  (cdr (assoc effect keg-ansi-codes)))
-
-(defun keg-ansi--char (effect)
-  "Return char for EFFECT."
-  (cdr (assoc effect keg-ansi-csis)))
-
 (defun keg-ansi-apply (effect-or-code format-string &rest objects)
   "Apply EFFECT-OR-CODE to text.
 FORMAT-STRING and OBJECTS are processed same as `apply'."
   (let ((code (if (numberp effect-or-code)
                   effect-or-code
-                (keg-ansi--code effect-or-code)))
+                (keg-ansi--alist-get effect-or-code keg-ansi-codes)))
         (text (apply 'format format-string objects)))
     (format "\e[%dm%s\e[%sm" code text keg-ansi-reset)))
 
 (defun keg-ansi-csi-apply (effect-or-char &optional reps)
   "Apply EFFECT-OR-CHAR REPS (1 default) number of times."
-  (let ((char (if (symbolp effect-or-char)
-                  (keg-ansi--char effect-or-char)
-                effect-or-char)))
+  (let ((char (if (stringp effect-or-char)
+                  effect-or-char
+                (keg-ansi--alist-get effect-or-char keg-ansi-csis))))
     (format "\u001b[%d%s" (or reps 1) char)))
 
 (defmacro with-keg-ansi (&rest body)
