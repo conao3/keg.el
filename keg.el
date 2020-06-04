@@ -304,7 +304,6 @@ See `package-install'."
 
   (require 'package-lint)
   (defvar package-lint-main-file)
-  (keg--princ command-line-args-left)
   (let* ((package-lint-main-file (when (< 1 (length command-line-args-left))
                                    (car command-line-args-left)))
          (success (package-lint-batch-and-exit-1 command-line-args-left)))
