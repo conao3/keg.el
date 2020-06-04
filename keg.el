@@ -623,7 +623,7 @@ ARGS first value is specified package.
 
 USAGE: keg build [PACKAGE]"
   (keg--argument-count-check -1 1 'build args)
-  (dolist (file (keg-files (car args)))
+  (dolist (file (keg-elisp-files (car args)))
     (if (fboundp 'byte-recompile-file)
         (byte-recompile-file file 'force 0)
       (byte-compile-file file))))
@@ -635,7 +635,7 @@ ARGS first value is specified package.
 USAGE: keg clean-elc [PACKAGE]"
   (keg--argument-count-check -1 1 'clean-elc args)
   (let ((pkg (keg--argument-package-check (car args) 'allow)))
-    (dolist (file (keg-files pkg))
+    (dolist (file (keg-elisp-files pkg))
       (let ((elc (concat file "c")))
         (keg--princ (format "Removing %s..." elc))
         (delete-file elc)))))
