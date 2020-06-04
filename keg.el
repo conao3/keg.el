@@ -310,16 +310,6 @@ See `package-install'."
          (success (package-lint-batch-and-exit-1 command-line-args-left)))
     (kill-emacs (if success 0 1))))
 
-(defun keg--newline-trim (str)
-  "Sanitize STR by removing newlines."
-  (let* ((str (replace-regexp-in-string "[\n]+$" "" str))
-         (str (replace-regexp-in-string "^[\n]+" "" str)))
-    str))
-
-(defun keg--buffer-almost-empty-p ()
-  "Return non-nil if current buffer is 'almost' empty."
-  (<= (- (point-max) (point)) 3))
-
 (defun keg-lint--byte-compile-batch ()
   "Run `byte-compile-file' for files specified CLI arguments."
   (unless noninteractive
@@ -331,10 +321,11 @@ See `package-install'."
         (ignore-errors (kill-buffer "*Compile-Log*"))
         (byte-compile-file file)
         (with-current-buffer (get-buffer-create "*Compile-Log*")
-          (if (keg--buffer-almost-empty-p)
+          (if (<= (- (point-max) (point)) 3)
               (setq pcode 0)
             (goto-char (point-min)) (forward-line 2)
-            (keg--newline-trim (buffer-substring (point) (point-max)))
+            (replace-regexp-in-string "\\(^[\n]+\\)\\|\\([\n]+$\\)" ""
+                                      (buffer-substring (point) (point-max)))
             (setq pcode 1)))
         (unless (= 0 pcode)
           (setq code pcode))))
