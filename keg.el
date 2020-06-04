@@ -418,6 +418,16 @@ This function is `alist-get' polifill for Emacs < 25.1."
        (keg--alist-get pkg
          (keg-file-read-section 'packages))))))
 
+(defun keg-elisp-files (&optional package)
+  "Return elisp files list associated with PACKAGE."
+  (sort (cl-remove-if
+         (lambda (elm) (not (string-suffix-p ".el" elm)))
+         (keg-files package))
+        (lambda (a b)
+          (string<
+           (substring a 0 -3)
+           (substring b 0 -3)))))
+
 (defun keg-function (subcommand)
   "Return function symbol from SUBCOMMAND."
   (intern (format "keg-main-%s" subcommand)))
@@ -673,13 +683,23 @@ USAGE: keg `load-path'"
   (keg--princ (keg-load-path)))
 
 (defun keg-main-files (&rest args)
-  "Show Elisp files associated with PACKAGE.
+  "Show files associated with PACKAGE.
 ARGS is specified package.
 
 USAGE: keg files [PACKAGE]"
   (keg--argument-count-check -1 1 'files args)
   (let ((pkg (keg--argument-package-check (car args) 'allow)))
     (dolist (elm (keg-files pkg))
+      (keg--princ elm))))
+
+(defun keg-main-elisp-files (&rest args)
+  "Show Elisp files associated with PACKAGE.
+ARGS is specified package.
+
+USAGE: keg files [PACKAGE]"
+  (keg--argument-count-check -1 1 'files args)
+  (let ((pkg (keg--argument-package-check (car args) 'allow)))
+    (dolist (elm (keg-elisp-files pkg))
       (keg--princ elm))))
 
 (defun keg-main-debug (&rest args)
