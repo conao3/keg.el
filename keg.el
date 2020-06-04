@@ -286,7 +286,7 @@ See `package-install'."
                       section
                     (list (assoc package section))))
       (let* ((name (car info))
-             (files (keg-files name)))
+             (files (keg-elisp-files name)))
         (unless linters
           (warn "All linter are disabled"))
         (setq keg-current-linters linters)
@@ -299,10 +299,15 @@ See `package-install'."
 
 (defun keg-lint--package-lint-batch ()
   "Run `package-lint' for files specified CLI arguments."
-  (require 'package-lint)
   (unless noninteractive
     (error "`keg-lint--package-lint-batch' is to be used only with --batch"))
-  (let ((success (package-lint-batch-and-exit-1 command-line-args-left)))
+
+  (require 'package-lint)
+  (defvar package-lint-main-file)
+  (keg--princ command-line-args-left)
+  (let* ((package-lint-main-file (when (< 1 (length command-line-args-left))
+                                   (car command-line-args-left)))
+         (success (package-lint-batch-and-exit-1 command-line-args-left)))
     (kill-emacs (if success 0 1))))
 
 (defun keg--newline-trim (str)
