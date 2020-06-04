@@ -420,13 +420,18 @@ This function is `alist-get' polifill for Emacs < 25.1."
 
 (defun keg-elisp-files (&optional package)
   "Return elisp files list associated with PACKAGE."
-  (sort (cl-remove-if
-         (lambda (elm) (not (string-suffix-p ".el" elm)))
-         (keg-files package))
-        (lambda (a b)
-          (string<
-           (substring a 0 -3)
-           (substring b 0 -3)))))
+  (let ((main-file (format "%s.el" package))
+        (res (sort (cl-remove-if
+                    (lambda (elm) (not (string-suffix-p ".el" elm)))
+                    (keg-files package))
+                   (lambda (a b)
+                     (string<
+                      (substring a 0 -3)
+                      (substring b 0 -3))))))
+    ;; ensure that the `main-file' is placed at the beginning of list.
+    (if (not (memq main-file res))
+        res
+      (cons main-file (delq main-file res)))))
 
 (defun keg-function (subcommand)
   "Return function symbol from SUBCOMMAND."
