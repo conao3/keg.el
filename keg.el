@@ -322,6 +322,9 @@ See `package-install'."
 
 (defun keg-lint--byte-compile-batch ()
   "Run `byte-compile-file' for files specified CLI arguments."
+  (unless noninteractive
+    (error "`keg-lint--byte-compile-batch' is to be used only with --batch"))
+
   (let ((code 0))
     (dolist (file command-line-args-left)
       (let (pcode)
