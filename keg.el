@@ -524,8 +524,7 @@ USAGE: keg version"
   (keg--argument-count-check 0 0 'version args)
   (keg--princ
    (format "Keg %s running on Emacs %s"
-           (eval-when-compile
-             (lm-version (expand-file-name "keg.el" keg-directory)))
+           (lm-version (expand-file-name "keg.el" keg-directory))
            emacs-version)))
 
 (defun keg-main-init (&rest args)
