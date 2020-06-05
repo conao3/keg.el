@@ -302,11 +302,17 @@ See `package-install'."
   (unless noninteractive
     (error "`keg-lint--package-lint-batch' is to be used only with --batch"))
 
-  (require 'package-lint)
-  (defvar package-lint-main-file)
-  (let* ((package-lint-main-file (when (< 1 (length command-line-args-left))
-                                   (car command-line-args-left)))
-         (success (package-lint-batch-and-exit-1 command-line-args-left)))
+  (prog1 'package
+    (setq package-archives (keg-build--package-archives '(melpa gnu)))
+    (keg-initialize))
+
+  (prog1 'package-lint
+    (require 'package-lint)
+    (defvar package-lint-main-file)
+    (setq package-lint-main-file (when (< 1 (length command-line-args-left))
+                                   (car command-line-args-left))))
+
+  (let ((success (package-lint-batch-and-exit-1 command-line-args-left)))
     (kill-emacs (if success 0 1))))
 
 (defun keg-lint--byte-compile-batch ()
@@ -314,6 +320,7 @@ See `package-install'."
   (unless noninteractive
     (error "`keg-lint--byte-compile-batch' is to be used only with --batch"))
 
+  (keg-initialize)
   (let ((code 0))
     (dolist (file command-line-args-left)
       (let (pcode)
@@ -744,19 +751,21 @@ USAGE: keg debug"
                                   install init clean clean-elc info)
   "List of commands that don't require dependency installation.")
 
+(defun keg-initialize ()
+  "Set Emacs work in keg sandbox."
+  (setq user-emacs-directory (expand-file-name (format ".keg/%s" emacs-version)))
+  (setq package-user-dir (locate-user-emacs-file "elpa"))
+  (package-initialize)
+  (add-to-list 'load-path (expand-file-name default-directory)))
+
 (defun keg-main ()
   "Init `keg' and exec subcommand."
   (unless noninteractive
     (error "`keg-main' is to be used only with --batch"))
+  (keg-initialize)
   (let* ((opraw (car command-line-args-left))
          (op (when opraw (intern opraw)))
-         (args (cdr command-line-args-left))
-         (user-emacs-directory
-          (expand-file-name (format ".keg/%s" emacs-version)))
-         (package-user-dir (locate-user-emacs-file "elpa")))
-    (package-initialize)
-    (add-to-list 'load-path (expand-file-name default-directory))
-
+         (args (cdr command-line-args-left)))
     (cond
      ((and
        (memq op keg-global-commands)
