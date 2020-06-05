@@ -32,13 +32,9 @@ help:
 
 ##############################
 
-build:
-	keg build
-
-lint:
-	keg lint
-
 test: build
+	keg build
+	keg lint
 	keg exec $(EMACS) --batch -l $(PACKAGE_NAME)-tests.el -f cort-test-run
 
 clean:
