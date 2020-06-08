@@ -743,11 +743,11 @@ USAGE: keg debug"
   (keg--princ " Keg file parsed")
   (keg--princ (keg--indent 5 (pp-to-string (keg-file-read)))))
 
-(defvar keg-global-commands '(help version debug)
+(defvar keg-global-commands '(init help version debug)
   "List of commands that don't require a Keg file.")
 
 (defvar keg-no-install-commands `(,@keg-global-commands
-                                  install init clean clean-elc info)
+                                  install clean clean-elc info)
   "List of commands that don't require dependency installation.")
 
 (defun keg-initialize ()
