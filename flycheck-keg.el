@@ -49,6 +49,7 @@ project to `flycheck-emacs-lisp-load-path'."
   :group 'flycheck-keg
   :type 'boolean)
 
+;;;###autoload
 (defun flycheck-keg-setup ()
   "Setup Flycheck for Elisp project using Keg."
   (when (buffer-file-name)
