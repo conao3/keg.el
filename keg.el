@@ -98,6 +98,18 @@ If no found the Keg file, returns nil."
   "Return SECTION value from Keg file."
   (keg--alist-get section (keg-file-read)))
 
+(defun keg-home-dir ()
+  "Get package ELPA dir."
+  (let ((kegdir (keg-file-dir)))
+    (when kegdir
+      (expand-file-name (format ".keg/%s/" emacs-version) kegdir))))
+
+(defun keg-elpa-dir ()
+  "Get package ELPA dir."
+  (let ((keghomedir (keg-home-dir)))
+    (when keghomedir
+      (expand-file-name "elpa/" keghomedir))))
+
 
 ;;; Resolve dependencies
 
@@ -466,8 +478,8 @@ This function is `alist-get' polifill for Emacs < 25.1."
 
 (defun keg-initialize ()
   "Set Emacs work in keg sandbox."
-  (setq user-emacs-directory (expand-file-name (format ".keg/%s" emacs-version)))
-  (setq package-user-dir (locate-user-emacs-file "elpa"))
+  (setq user-emacs-directory (keg-home-dir))
+  (setq package-user-dir (keg-elpa-dir))
   (package-initialize)
   (add-to-list 'load-path (expand-file-name default-directory)))
 
