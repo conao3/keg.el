@@ -41,6 +41,14 @@
   :group 'convenience
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
+(defcustom flycheck-keg-add-root-directory t
+  "When non-nil, add the root directory to the load path.
+
+If this variable is non nil, add the root directory of a Keg
+project to `flycheck-emacs-lisp-load-path'."
+  :group 'flycheck-keg
+  :type 'boolean)
+
 (defun flycheck-keg-setup ()
   "Setup Flycheck for Elisp project using Keg."
   (when (buffer-file-name)
@@ -51,8 +59,9 @@
         (when (eq flycheck-emacs-lisp-load-path 'inherit)
           ;; Disable `load-path' inheritance if enabled.
           (setq-local flycheck-emacs-lisp-load-path nil))
-        (setq-local flycheck-emacs-lisp-load-path
-                    (cons dir flycheck-emacs-lisp-load-path))))))
+        (when flycheck-keg-add-root-directory
+          (setq-local flycheck-emacs-lisp-load-path
+                      (cons dir flycheck-emacs-lisp-load-path)))))))
 
 (provide 'flycheck-keg)
 ;;; flycheck-keg.el ends here
