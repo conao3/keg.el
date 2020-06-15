@@ -30,7 +30,6 @@
 
 (require 'cl-lib)
 (require 'lisp-mnt)
-(require 'subr-x)
 (require 'package)
 (require 'keg-cli)
 (require 'keg-ansi)
@@ -270,7 +269,7 @@ See `package-install'."
                         "--eval=\"(require 'keg)\""
                         ,(format "--funcall=%s" fn)
                         ,@files))
-             (proc (keg-start-process (string-join command " "))))
+             (proc (keg-start-process (keg--string-join command " "))))
         (set-process-sentinel
          proc
          (lambda (proc _event)
@@ -377,6 +376,11 @@ This function is `alist-get' polifill for Emacs < 25.1."
   (let ((x (assq key alist)))
     (if x (cdr x) default)))
 
+(defun keg--string-join (strings &optional separator)
+  "Join all STRINGS using SEPARATOR.
+This function is `string-join' polifill for Emacs < 24.4."
+  (mapconcat 'identity strings separator))
+
 (defun keg-install-package (pkg)
   "Install PKG in .keg folder."
   (let ((package-archives (keg-build--package-archives '(gnu melpa))))
@@ -399,7 +403,7 @@ This function is `alist-get' polifill for Emacs < 25.1."
 
 (defun keg-load-path ()
   "Return keg `load-path' same format as PATH."
-  (string-join (mapcar #'shell-quote-argument load-path) ":"))
+  (keg--string-join (mapcar #'shell-quote-argument load-path) ":"))
 
 (defun keg-process-environment ()
   "Return `process-environment' for keg."
@@ -407,12 +411,12 @@ This function is `alist-get' polifill for Emacs < 25.1."
 
 (defun keg-start-process (&rest command)
   "Exec COMMAND and return process object."
-  (keg--princ "Exec command: %s" (string-join command " "))
+  (keg--princ "Exec command: %s" (keg--string-join command " "))
   (let* ((process-environment (keg-process-environment))
          (proc (start-process-shell-command
                 "keg"
                 (generate-new-buffer "*keg*")
-                (string-join command " "))))
+                (keg--string-join command " "))))
     (set-process-filter
      proc
      (lambda (_proc str)
@@ -440,7 +444,7 @@ This function is `alist-get' polifill for Emacs < 25.1."
   "Return elisp files list associated with PACKAGE."
   (let ((main-file (format "%s.el" package))
         (res (sort (cl-remove-if
-                    (lambda (elm) (not (string-suffix-p ".el" elm)))
+                    (lambda (elm) (not (string-match ".el$" elm)))
                     (keg-files package))
                    (lambda (a b)
                      (string<
