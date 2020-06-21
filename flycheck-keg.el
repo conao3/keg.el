@@ -1,4 +1,4 @@
-;;; flycheck-keg.el --- Flycheck for Keg project  -*- lexical-binding: t; -*-
+;;; flycheck-keg.el --- Flycheck for Keg projects  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 Naoya Yamashita
 
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; Flycheck for Keg project.
+;; Flycheck for Keg projects.
 
 ;; To use this package, add below code in your init.el.
 
@@ -37,7 +37,7 @@
 (require 'flycheck)
 
 (defgroup flycheck-keg nil
-  "Flycheck for Keg project."
+  "Flycheck for Keg projects."
   :group 'convenience
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
