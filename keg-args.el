@@ -22,6 +22,9 @@
 
 ;; Parse CLI arguments.
 
+;; Core concept and some codes from commander.el (GPLv3) by Johan Andersson.
+;;   https://github.com/rejeep/commander.el
+
 
 ;;; Code:
 
