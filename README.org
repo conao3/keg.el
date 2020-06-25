@@ -59,6 +59,136 @@ This repository includes =keg= executable, =keg= Elisp package, =keg-mode= Emacs
 
 And [[https://github.com/marketplace/actions/setup-keg][keg-setup]] for GitHub actions is available.
 
+** Keg file
+In order for Keg to recognize your project, you need to add the
+name =Keg= to the root of your project.
+
+Keg is plain text in S-expression and there are major-mode for
+editing the file to get better indentation and font-lock.
+#+begin_src fundamental
+M-x install-package keg-mode
+#+end_src
+
+The syntax is as follows.
+
+#+begin_src fundamental
+KEG := (OP {OP}-ARGS...)
+#+end_src
+
+OP can be =source=, =package=, =dev-dependency=.
+
+*** source
+The =source= can be given in succession with the following
+arguments The mapping between symbols and URLs is as follows.
+
+#+begin_src emacs-lisp
+(defvar keg-archives
+  '((gnu . "https://elpa.gnu.org/packages/")
+    (org . "https://orgmode.org/elpa/")
+    (melpa . "https://melpa.org/packages/")
+    (celpa . "https://celpa.conao3.com/packages/"))
+  "Alist for symbol to ELPA url.")
+#+end_src
+
+*** package
+A =package= can also contain more details about the package.
+#+begin_src emacs-lisp
+(The package
+ ({package-symbol}
+  {package-args}...)
+ ...)
+#+end_src
+
+With this specification, Keg is now correctly recognize multi
+package if you mixed multi package in one repository.
+
+Inaddition, keg commands can be executed for specific packages.
+
+For example,
+#+begin_src emacs-lisp
+keg build {package}
+#+end_src
+
+If you specify a =package-symbol=, the file named
+={package-symbol}.el= is needed and used only the header written
+in the file to resolve dependency.
+
+This is the same way as MELPA. =package-symbol= corresponding to
+the name of the MELPA recipe file.
+
+**** package/recipe
+=package-args= could accept alist and currently only
+=recipe= is varid.
+
+It accepts the same S-expression as the MELPA recipe file.
+
+*** dev-dependency
+=dev-dependency= is not a package dependency but you need for
+package development like =buttercup= or =ert=.
+
+#+begin_src emacs-lisp
+(dev-dependency {package}...)
+#+end_src
+
+*** Keg file Example
+So, for example, the following Keg file is valid.
+#+begin_src emacs-lisp
+  ;; Keg
+
+  (source gnu melpa)
+
+  (package
+   (keg
+    (recipe . (keg :fetcher github :repo "conao3/keg.el"
+                   :files (:defaults (:exclude "keg-mode.el" "flycheck-keg.el")))))
+   (keg-mode
+    (recipe . (keg-mode :fetcher github :repo "conao3/keg.el" :files ("keg-mode.el"))))
+   (flycheck-keg
+    (recipe . (flycheck-keg :fetcher github :repo "conao3/keg.el" :files ("flycheck-keg.el")))))
+
+  (dev-dependency cort)
+#+end_src
+
+This Keg file configured keg to use ELPA and MELPA as
+package-archives to resolve package dependencies.
+
+There are three packages in this repository: =keg=, =keg-mode=, =flycheck-keg=.
+
+In addition, each recipe is specified.
+
+Therefore, it works as follows.
+#+begin_src shell
+$ keg build
+Compiling /home/conao/dev/repos/keg.el/flycheck-keg.el...
+Compiling /home/conao/dev/repos/keg.el/keg.el...
+Compiling /home/conao/dev/repos/keg.el/keg-ansi.el...
+Compiling /home/conao/dev/repos/keg.el/keg-cli.el...
+Compiling /home/conao/dev/repos/keg.el/keg-mode.el...
+
+$ keg build keg
+Compiling /home/conao/dev/repos/keg.el/keg.el...
+Compiling /home/conao/dev/repos/keg.el/keg-ansi.el...
+Compiling /home/conao/dev/repos/keg.el/keg-cli.el...
+
+$ keg build keg-mode
+Compiling /home/conao/dev/repos/keg.el/keg-mode.el...
+#+end_src
+
+Since =cort= is specified in =dev-dependency=,
+keg also install =cort= in the .keg sandbox.
+
+#+begin_src shell
+$ keg install
+Install dependencies
+ Package: keg
+     Dependency: ((emacs 24.1) (cl-lib 0.6))
+ Package: keg-mode
+     Dependency: ((emacs 24.4))
+ Package: flycheck-keg
+     Dependency: ((emacs 24.3) (keg 0.1) (flycheck 0.1))
+ DevDependency: ((cort 0.0.1))
+#+end_src
+
 ** keg executable
 *** emacs
 #+begin_src shell
@@ -137,7 +267,6 @@ Show subcommand help.
   keg debug
 #+end_src
 Show debug info.
-
 
 ** keg Elisp package
 - keg-file-dir :: Get directory path which =Keg= located
