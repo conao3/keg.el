@@ -1,9 +1,9 @@
-;;; keg-cli-args.el --- Parse CLI arguments  -*- lexical-binding: t; -*-
+;;; keg-cli.el --- Parse CLI arguments  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020  Naoya Yamashita
 
 ;; Author: Naoya Yamashita <conao3@gmail.com>
-;; URL: https://github.com/conao3/keg-cli-args.el
+;; URL: https://github.com/conao3/keg.el
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,27 +28,27 @@
 
 ;;; Code:
 
-(defgroup keg-cli-args nil
+(defgroup keg-cli nil
   "Parse CLI arguments."
   :group 'convenience
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
-(defvar keg-cli-args-name nil)
+(defvar keg-cli-name nil)
 
-(defmacro def-keg-cli-args (name &rest body)
+(defmacro def-keg-cli (name &rest body)
   "Define command parser.
 NAME is command name used help command.
-BODY is `keg-cli-args' command definition DSL."
+BODY is `keg-cli' command definition DSL."
   `(progn
-     (setq keg-cli-args-name ,name)
+     (setq keg-cli-name ,name)
      ,(mapcar
        (lambda (elm) elm)
        body)))
 
-(provide 'keg-cli-args)
+(provide 'keg-cli)
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
 
-;;; keg-cli-args.el ends here
+;;; keg-cli.el ends here
