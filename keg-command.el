@@ -1,4 +1,4 @@
-;;; keg-cli.el --- CLI subcommand definition  -*- lexical-binding: t; -*-
+;;; keg-command.el --- CLI subcommand definition  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 Naoya Yamashita
 
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(provide 'keg-cli)
+(provide 'keg-command)
 
 (require 'keg)
 
@@ -62,7 +62,7 @@ If ALLOW-NIL is non-nil, it don't warn if package is nil."
           (warn "Package %s is not defined.  Package should one of %s" pkg packages))
       pkg)))
 
-(defun keg-cli-help (&rest args)
+(defun keg-command-help (&rest args)
   "Show this help.
 ARGS is CLI arguments.
 
@@ -81,7 +81,7 @@ SUBCOMMANDS:")
       (keg--princ (format " %s" (if argument-usage argument-usage elm)))
       (keg--princ (keg--indent 5 usage)))))
 
-(defun keg-cli-version (&rest args)
+(defun keg-command-version (&rest args)
   "Show `keg' version.
 ARGS is CLI arguments
 
@@ -92,7 +92,7 @@ USAGE: keg version"
            (lm-version (expand-file-name "keg.el" keg-directory))
            emacs-version)))
 
-(defun keg-cli-init (&rest args)
+(defun keg-command-init (&rest args)
   "Create Keg template file.
 ARGS is CLI argument.
 
@@ -110,7 +110,7 @@ USAGE: keg init"
 "))
   (keg--princ "Successful creating Keg file"))
 
-(defun keg-cli-install (&rest args)
+(defun keg-command-install (&rest args)
   "Install PACKAGE dependencies in .keg sandbox folder.
 ARGS is CLI argument.
 
@@ -139,7 +139,7 @@ USAGE: keg install [PACKAGE]"
                          (keg--alist-get 'keg--devs reqinfo)))))
   (keg-build--resolve-dependency))
 
-(defun keg-cli-exec (&rest args)
+(defun keg-command-exec (&rest args)
   "Exec COMMAND with appropriate environment variables.
 ARGS is list of string.
 
@@ -154,25 +154,25 @@ USAGE: keg exec COMMAND [ARGS...]"
     (while t                            ; wait acync process
       (accept-process-output proc 0 100))))
 
-(defun keg-cli-emacs (&rest args)
+(defun keg-command-emacs (&rest args)
   "Exec Emacs with appropriate environment variables.
 Exec Emacs with ARGS.
 
 USAGE: keg Emacs [ARGS...]"
   (keg--argument-count-check -1 -1 'emacs args)
-  (apply #'keg-cli-exec "emacs" args))
+  (apply #'keg-command-exec "emacs" args))
 
-(defun keg-cli-eval (&rest args)
+(defun keg-command-eval (&rest args)
   "Eval SEXP via batch Emacs with appropriate environment variables.
 ARGS are (separated) SEXP.
 
 USAGE: keg eval [SEXP]"
   (keg--argument-count-check -1 -1 'eval args) ; sexp is separated
   (when args
-    (keg-cli-exec "emacs" "--batch"
-                   (format "--eval=\"%s\"" (string-join args " ")))))
+    (keg-command-exec "emacs" "--batch"
+                      (format "--eval=\"%s\"" (string-join args " ")))))
 
-(defun keg-cli-lint (&rest args)
+(defun keg-command-lint (&rest args)
   "Exec linters for PACKAGE.
 ARGS first value is specified package.
 
@@ -181,7 +181,7 @@ USAGE: keg lint [PACKAGE]"
   (let ((pkg (keg--argument-package-check (car args) 'allow)))
     (kill-emacs (keg-lint pkg))))
 
-(defun keg-cli-build (&rest args)
+(defun keg-command-build (&rest args)
   "Byte compile for PACKAGE.
 ARGS first value is specified package.
 
@@ -192,7 +192,7 @@ USAGE: keg build [PACKAGE]"
         (byte-recompile-file file 'force 0)
       (byte-compile-file file))))
 
-(defun keg-cli-clean-elc (&rest args)
+(defun keg-command-clean-elc (&rest args)
   "Clean `.elc' files.
 ARGS first value is specified package.
 
@@ -204,7 +204,7 @@ USAGE: keg clean-elc [PACKAGE]"
         (keg--princ (format "Removing %s..." elc))
         (delete-file elc)))))
 
-(defun keg-cli-clean (&rest args)
+(defun keg-command-clean (&rest args)
   "Clean `.elc' files and `.keg' sandbox.
 ARGS is CLI argument.
 
@@ -212,9 +212,9 @@ USAGE: keg clean"
   (keg--argument-count-check 0 0 'clean args)
   (keg--princ "Removing .keg...")
   (delete-directory ".keg" 'force)
-  (keg-cli-clean-elc))
+  (keg-command-clean-elc))
 
-(defun keg-cli-info (&rest args)
+(defun keg-command-info (&rest args)
   "Show PACKAGE information.
 ARGS first value is specified package.
 
@@ -248,7 +248,7 @@ USAGE: keg info [PACKAGE]"
                              `(,pkg ,(package-version-join ver))))
                          (keg--alist-get 'keg--devs reqinfo))))))
 
-(defun keg-cli-load-path (&rest args)
+(defun keg-command-load-path (&rest args)
   "Show Emacs appropriate `load-path' same format as PATH.
 ARGS is CLI argument.
 
@@ -256,7 +256,7 @@ USAGE: keg `load-path'"
   (keg--argument-count-check 0 0 'load-path args)
   (keg--princ (keg-load-path)))
 
-(defun keg-cli-files (&rest args)
+(defun keg-command-files (&rest args)
   "Show files associated with PACKAGE.
 ARGS is specified package.
 
@@ -266,7 +266,7 @@ USAGE: keg files [PACKAGE]"
     (dolist (elm (keg-files pkg))
       (keg--princ elm))))
 
-(defun keg-cli-elisp-files (&rest args)
+(defun keg-command-elisp-files (&rest args)
   "Show Elisp files associated with PACKAGE.
 ARGS is specified package.
 
@@ -276,7 +276,7 @@ USAGE: keg files [PACKAGE]"
     (dolist (elm (keg-elisp-files pkg))
       (keg--princ elm))))
 
-(defun keg-cli-debug (&rest args)
+(defun keg-command-debug (&rest args)
   "Show debug information.
 ARGS is CLI argument.
 
@@ -316,10 +316,10 @@ USAGE: keg debug"
   "List of commands that don't require dependency installation.")
 
 
-(defun keg-cli ()
+(defun keg-command ()
   "Init `keg' and exec subcommand."
   (unless noninteractive
-    (error "`keg-cli' is to be used only with --batch"))
+    (error "`keg-command' is to be used only with --batch"))
   (keg-initialize)
   (let* ((opraw (car command-line-args-left))
          (op (when opraw (intern opraw)))
@@ -343,16 +343,16 @@ USAGE: keg debug"
        (not (file-directory-p user-emacs-directory)))
       (keg--princ "As missing .keg sandbox, install dependencies")
       (make-directory user-emacs-directory 'parent)
-      (keg-cli-install)))
+      (keg-command-install)))
 
     (cond
      ((null op)
-      (keg-cli-install))
+      (keg-command-install))
      ((memq op (keg-subcommands))
-      (apply (intern (format "keg-cli-%s" (symbol-name op))) args))
+      (apply (intern (format "keg-command-%s" (symbol-name op))) args))
      (t
-      (keg-cli-help)
+      (keg-command-help)
       (keg--princ)
       (error (format "Subcommand `%s' is not defined" op))))))
 
-;;; keg-cli.el ends here
+;;; keg-command.el ends here

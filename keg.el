@@ -31,7 +31,7 @@
 (require 'cl-lib)
 (require 'lisp-mnt)
 (require 'package)
-(require 'keg-cli)
+(require 'keg-command)
 (require 'keg-ansi)
 
 (defgroup keg nil
@@ -396,9 +396,8 @@ This function is `string-join' polifill for Emacs < 24.4."
   (let (res)
     (mapatoms
      (lambda (elm)
-       (when (and (fboundp elm)
-                  (string-prefix-p "keg-cli-" (symbol-name elm)))
-         (push (intern (replace-regexp-in-string "^keg-cli-" "" (symbol-name elm))) res))))
+       (when (and (fboundp elm) (string-prefix-p "keg-command-" (symbol-name elm)))
+         (push (intern (replace-regexp-in-string "^keg-command-" "" (symbol-name elm))) res))))
     (sort res (lambda (a b) (string< (symbol-name a) (symbol-name b))))))
 
 (defun keg-load-path ()
@@ -457,7 +456,7 @@ This function is `string-join' polifill for Emacs < 24.4."
 
 (defun keg-function (subcommand)
   "Return function symbol from SUBCOMMAND."
-  (intern (format "keg-cli-%s" subcommand)))
+  (intern (format "keg-command-%s" subcommand)))
 
 (defun keg-usage (subcommand)
   "Return SUBCOMMAND CLI usage."
