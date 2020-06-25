@@ -4,7 +4,8 @@
 
 (package
  (keg
-  (recipe . (keg :fetcher github :repo "conao3/keg.el" :files (:defaults (:exclude "keg-mode.el")))))
+  (recipe . (keg :fetcher github :repo "conao3/keg.el"
+                 :files (:defaults (:exclude "keg-mode.el" "flycheck-keg.el")))))
  (keg-mode
   (recipe . (keg-mode :fetcher github :repo "conao3/keg.el" :files ("keg-mode.el"))))
  (flycheck-keg
