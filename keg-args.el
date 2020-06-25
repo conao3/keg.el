@@ -33,6 +33,18 @@
   :group 'convenience
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
+(defvar keg-args-name nil)
+
+(defmacro def-keg-args (name &rest body)
+  "Define command parser.
+NAME is command name used help command.
+BODY is `keg-args' command definition DSL."
+  `(progn
+     (setq keg-args-name ,name)
+     ,(mapcar
+       (lambda (elm) elm)
+       body)))
+
 (provide 'keg-args)
 
 ;; Local Variables:
