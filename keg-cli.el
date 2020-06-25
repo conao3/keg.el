@@ -39,6 +39,7 @@
   "Define command parser.
 NAME is command name used help command.
 BODY is `keg-cli' command definition DSL."
+  (declare (indent 1))
   `(progn
      (setq keg-cli-name ,name)
      ,(mapcar
