@@ -34,6 +34,18 @@
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
 (defvar keg-cli-name nil)
+(defvar keg-cli-args nil)
+(defvar keg-cli-parsing-done nil)
+
+(defun keg-cli--make-args (args))
+
+(defun keg-cli-option (args))
+(defun keg-cli-command (args))
+(defun keg-cli-description (desc))
+(defun keg-cli-config (file))
+(defun keg-cli-usage ())
+(defun keg-cli-default (cmd args))
+(defun keg-cli-parse (args))
 
 (defmacro def-keg-cli (name &rest body)
   "Define command parser.
@@ -43,8 +55,26 @@ BODY is `keg-cli' command definition DSL."
   `(progn
      (setq keg-cli-name ',name)
      ,(mapcar
-       (lambda (elm) elm)
-       body)))
+       (lambda (elm)
+         (pcase elm
+           (`(option . ,args)
+            (apply #'keg-cli-option (keg-cli--make-args args)))
+           (`(command . ,args)
+            (apply #'keg-cli-command (keg-cli--make-args args)))
+           (`(parse ,args)
+            (keg-cli-parse args)
+            (setq keg-cli-parsing-done t))
+           (`(description ,desc)
+            (keg-cli-description desc))
+           (`(config ,file)
+            (keg-cli-config file))
+           (`(default ,cmd . ,args)
+            (keg-cli-default cmd args))
+           (_
+            (error "Unknown directive: %s" elm))))
+       body)
+     (unless keg-cli-parsing-done
+       (keg-cli-parse (or keg-cli-args (cdr command-line-args-left))))))
 
 (provide 'keg-cli)
 
