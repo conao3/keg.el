@@ -34,12 +34,82 @@
   :link '(url-link :tag "Github" "https://github.com/conao3/keg.el"))
 
 (defvar keg-cli-name nil)
+(defvar keg-cli-options nil)
+
 (defvar keg-cli-args nil)
 (defvar keg-cli-parsing-done nil)
 
-(defun keg-cli--make-args (args))
+(defconst keg-cli-option-re
+  "\\(-[A-Za-z0-9-]\\|--?[A-Za-z0-9][A-Za-z0-9-]+\\)"
+  "Regex matching an option flag.")
 
-(defun keg-cli-option (args))
+(defconst keg-cli-command-re
+  "\\([A-Za-z0-9][A-Za-z0-9-]*\\)"
+  "Regex matching an command.")
+
+
+
+(defun keg-cli--string-trim (str &optional trim-left trim-right)
+  "Trim STR of leading and trailing strings matching TRIM-LEFT and TRIM-RIGHT.
+
+TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
+  (let ((res str))
+    (setq res (replace-regexp-in-string (or trim-left "\\`[ \t\n\r]+") "" res))
+    (setq res (replace-regexp-in-string (or trim-right "[ \t\n\r]+\\'") "" res))
+    res))
+
+(defun keg-cli--make-args (args)
+  "Make proper command/option arguments from ARGS.
+
+ARGS is the args that are passed to the `command' and `option'
+directives.  The return value is a list complete list that can be
+sent to `keg-cli-command' and `keg-cli-options'.
+
+If ARGS does not contain documentation, it is fetched from the
+function doc string."
+  (when (functionp (nth 1 args))
+    (let ((desc* (let ((desc (documentation (nth 1 args))))
+                   (if desc
+                       (split-string desc "\\(\r\n\\|[\n\r]\\)")
+                     ""))))
+      (push desc* (cdr args))))
+  args)
+
+(defun keg-cli-option (flags desc func &rest default-values)
+  "Interpret option op.
+With FLAGS, DESC, FUNC, DEFAULT-VALUES."
+  (let (required optional zero-or-more one-or-more)
+    (mapcar
+     (lambda (flag)
+       (let ((to-string flags))
+         (let ((matches (string-match (concat "\\`" keg-cli-option-re " " "<\\(.+\\)>" "\\'") flag)))
+           (when matches
+             (setq flag (match-string 1 flag))
+             (when (match-string 2 flag)
+               (setq required t)
+               (if (equal (match-string 2 flag) "*")
+                   (setq one-or-more t)))))
+         (let ((matches (string-match (concat "\\`" keg-cli-option-re " " "\\[\\(.+\\)\\]" "\\'") flag)))
+           (when matches
+             (setq flag (match-string 1 flag))
+             (when (match-string 2 flag)
+               (setq required t)
+               (if (equal (match-string 2 flag) "*")
+                   (setq one-or-more t)))))
+         (push
+          `((flag . ,flag)
+            (flags . ,flags)
+            (desc . ,desc)
+            (func . ,func)
+            (default-values . ,default-values)
+            (required . ,required)
+            (optional . ,optional)
+            (zero-or-more . ,zero-or-more)
+            (one-or-more . ,one-or-more)
+            (to-string . ,to-string))
+          keg-cli-options)))
+     (mapcar 'keg-cli--string-trim (split-string flags ",")))))
+
 (defun keg-cli-command (args))
 (defun keg-cli-description (desc))
 (defun keg-cli-config (file))
@@ -54,25 +124,26 @@ BODY is `keg-cli' command definition DSL."
   (declare (indent 1))
   `(progn
      (setq keg-cli-name ',name)
-     ,(mapcar
-       (lambda (elm)
-         (pcase elm
-           (`(option . ,args)
-            (apply #'keg-cli-option (keg-cli--make-args args)))
-           (`(command . ,args)
-            (apply #'keg-cli-command (keg-cli--make-args args)))
-           (`(parse ,args)
-            (keg-cli-parse args)
-            (setq keg-cli-parsing-done t))
-           (`(description ,desc)
-            (keg-cli-description desc))
-           (`(config ,file)
-            (keg-cli-config file))
-           (`(default ,cmd . ,args)
-            (keg-cli-default cmd args))
-           (_
-            (error "Unknown directive: %s" elm))))
-       body)
+     ,@(mapcar
+        (lambda (elm)
+          (pcase elm
+            (`(option . ,args)
+             `(keg-cli-option ',args))
+            (`(command . ,args)
+             `(keg-cli-command ',args))
+            (`(parse ,args)
+             `(progn
+                (keg-cli-parse ',args)
+                (setq keg-cli-parsing-done t)))
+            (`(description ,desc)
+             `(keg-cli-description ',desc))
+            (`(config ',file)
+             `(keg-cli-config ',file))
+            (`(default ,cmd . ,args)
+             `(keg-cli-default ',cmd ',args))
+            (_
+             (error "Unknown directive: %s" elm))))
+        body)
      (unless keg-cli-parsing-done
        (keg-cli-parse (or keg-cli-args (cdr command-line-args-left))))))
 
