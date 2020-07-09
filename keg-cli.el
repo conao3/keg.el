@@ -35,6 +35,7 @@
 
 (defvar keg-cli-name nil)
 (defvar keg-cli-options nil)
+(defvar keg-cli-commands nil)
 
 (defvar keg-cli-args nil)
 (defvar keg-cli-parsing-done nil)
@@ -110,7 +111,41 @@ With FLAGS, DESC, FUNC, DEFAULT-VALUES."
           keg-cli-options)))
      (mapcar 'keg-cli--string-trim (split-string flags ",")))))
 
-(defun keg-cli-command (args))
+(defun keg-cli-command (command desc func &rest args)
+  "Interpret command op.
+With COMMAND, DESC, FUNC, ARGS."
+  (let* (required
+         optional
+         zero-or-more
+         one-or-more
+         (to-string command)
+         (default-values (-take-while 'stringp args)))
+    (let ((matches (s-match (concat "\\`" keg-cli-command-re " " "<\\(.+\\)>" "\\'") command)))
+      (when matches
+        (setq command (nth 1 matches))
+        (when (nth 2 matches)
+          (setq required t)
+          (if (equal (nth 2 matches) "*")
+              (setq one-or-more t)))))
+    (let ((matches (s-match (concat "\\`" keg-cli-command-re " " "\\[\\(.+\\)\\]" "\\'") command)))
+      (when matches
+        (setq command (nth 1 matches))
+        (when (nth 2 matches)
+          (setq optional t)
+          (if (equal (nth 2 matches) "*")
+              (setq zero-or-more t)))))
+    (push
+     `((command . ,command)
+       (description . ,desc)
+       (func . ,func)
+       (default-values . ,default-values)
+       (required . ,required)
+       (optional . ,optional)
+       (zero-or-more . ,zero-or-more)
+       (one-or-more . ,one-or-more)
+       (to-string . ,to-string))
+     keg-cli-commands)))
+
 (defun keg-cli-description (desc))
 (defun keg-cli-config (file))
 (defun keg-cli-usage ())
