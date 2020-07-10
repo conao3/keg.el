@@ -37,7 +37,7 @@
 (defvar keg-cli-options nil)
 (defvar keg-cli-commands nil)
 (defvar keg-cli-description nil)
-(defvar commander-default-config nil)
+(defvar keg-cli-default-config nil)
 
 (defvar keg-cli-args nil)
 (defvar keg-cli-parsing-done nil)
@@ -167,10 +167,55 @@ With COMMAND, DESC, FUNC, ARGS."
            (lines (cl-remove-if
                    (lambda (elm) (or (null elm) (string= "" elm)))
                    contents)))
-      (setq commander-default-config
+      (setq keg-cli-default-config
             (keg--flatten (mapcar (lambda (elm) (split-string elm " ")) lines))))))
 
-(defun keg-cli-usage ())
+(defun keg-cli--usage-command-or-option (str desc)
+  "`keg-cli--usage-command-or-option' with STR and DESC."
+  (unless (listp desc)
+    (setq desc (list desc)))
+  (let* ((lst (append
+               (mapcar (lambda (elm) (length (keg-cli-option-to-string elm))) keg-cli-options)
+               (mapcar (lambda (elm) (length (keg-cli-command-to-string elm))) keg-cli-commands)))
+         (padding (+ 10 (apply #'max lst))))
+    (concat
+     " "
+     str
+     (make-string (- padding (length str)) ?\s)
+     (car desc)
+     (string-join
+      (mapcar
+       (lambda (elm) (concat "\n" (make-string (1+ padding) ?\s) elm))
+       (cdr desc))))))
+
+(defun keg-cli--usage-command (command)
+  "`keg-cli--usage-command' with COMMAND."
+  (let ((to-string (keg-cli-command-to-string command))
+        (description (keg-cli-command-description command)))
+    (keg-cli--usage-command-or-option to-string description)))
+
+(defun keg-cli--usage-option (option)
+  "`keg-cli--usage-option' with OPTION."
+  (let ((to-string (keg-cli-option-to-string option))
+        (description (keg-cli-option-description option)))
+    (keg-cli--usage-command-or-option to-string description)))
+
+(defun keg-cli-usage ()
+  "Return usage information as a string."
+  (let ((name (or keg-cli-name (f-filename load-file-name)))
+        (commands-string
+         (string-join (mapcar (lambda (elm) (keg-cli--usage-command elm)) (keg-cli--usage-commands)) "\n"))
+        (options-string
+         (string-join (mapcar (lambda (elm) (keg-cli--usage-option elm)) (keg-cli--usage-options)) "\n")))
+    (concat
+     (format "USAGE: %s [COMMAND] [OPTIONS]" name)
+     (when keg-cli-description
+       (format "\n\n%s" keg-cli-description))
+     (when keg-cli-commands
+       (format "\n\nCOMMANDS:\n\n%s" commands-string))
+     (when keg-cli-options
+       (format "\n\nOPTIONS:\n\n%s" options-string)))))
+
 (defun keg-cli-default (cmd args))
 (defun keg-cli-parse (args))
 
