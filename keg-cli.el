@@ -247,7 +247,7 @@ With COMMAND, DESC, FUNC, ARGS."
               (setq rest (cons command args)))))
       (keg-cli--handle-command rest))))
 
-(defmacro def-keg-cli (name &rest body)
+(defmacro define-keg-cli (name &rest body)
   "Define command parser.
 NAME is command name used help command.
 BODY is `keg-cli' command definition DSL."
