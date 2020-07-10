@@ -130,14 +130,14 @@ With COMMAND, DESC, FUNC, ARGS."
          one-or-more
          (to-string command)
          (default-values (cl-remove-if-not 'stringp args)))
-    (let ((matches (s-match (concat "\\`" keg-cli-command-re " " "<\\(.+\\)>" "\\'") command)))
+    (let ((matches (string-match (concat "\\`" keg-cli-command-re " " "<\\(.+\\)>" "\\'") command)))
       (when matches
         (setq command (nth 1 matches))
         (when (nth 2 matches)
           (setq required t)
           (if (equal (nth 2 matches) "*")
               (setq one-or-more t)))))
-    (let ((matches (s-match (concat "\\`" keg-cli-command-re " " "\\[\\(.+\\)\\]" "\\'") command)))
+    (let ((matches (string-match (concat "\\`" keg-cli-command-re " " "\\[\\(.+\\)\\]" "\\'") command)))
       (when matches
         (setq command (nth 1 matches))
         (when (nth 2 matches)
