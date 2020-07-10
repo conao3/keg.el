@@ -146,8 +146,10 @@ With COMMAND, DESC, FUNC, ARGS."
        (to-string . ,to-string))
      keg-cli-commands)))
 
-(defun keg-cli-description (desc))
 (defun keg-cli-config (file))
+(defun keg-cli-description (desc)
+  "Interpret command desc with DESC."
+  (setq keg-cli-description desc))
 (defun keg-cli-usage ())
 (defun keg-cli-default (cmd args))
 (defun keg-cli-parse (args))
