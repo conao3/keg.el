@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(require 'subr-x)
+
 (defgroup keg-cli nil
   "Parse CLI arguments."
   :group 'convenience
