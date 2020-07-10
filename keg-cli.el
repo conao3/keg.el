@@ -244,7 +244,8 @@ With COMMAND, DESC, FUNC, DEFAULT-VALUES."
             (let ((command (keg-cli-default-command-command keg-cli-default-command))
                   (args (keg-cli-default-command-arguments keg-cli-default-command)))
               (setq rest (cons command args)))))
-      (keg-cli--handle-command rest))))
+      (keg-cli--handle-command rest)))
+  (setq keg-cli-parsing-done t))
 
 (defmacro define-keg-cli (name &rest body)
   "Define command parser.
