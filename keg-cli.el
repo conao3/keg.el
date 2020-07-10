@@ -232,7 +232,17 @@ With COMMAND, DESC, FUNC, ARGS."
       :function cmd
       :arguments args))))
 
-(defun keg-cli-parse (args))
+(defun keg-cli-parse (args)
+  "`keg-cli-parse' with ARGS."
+  (unless (bound-and-true-p commander-ignore)
+    (let* ((rest-config (keg-cli--handle-options keg-cli-default-config))
+           (rest (or (keg-cli--handle-options args) rest-config)))
+      (unless rest
+        (if keg-cli-default-command
+            (let ((command (keg-cli-default-command-command keg-cli-default-command))
+                  (args (keg-cli-default-command-arguments keg-cli-default-command)))
+              (setq rest (cons command args)))))
+      (keg-cli--handle-command rest))))
 
 (defmacro def-keg-cli (name &rest body)
   "Define command parser.
