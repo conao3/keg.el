@@ -36,6 +36,8 @@
 (defvar keg-cli-name nil)
 (defvar keg-cli-options nil)
 (defvar keg-cli-commands nil)
+(defvar keg-cli-description nil)
+(defvar commander-default-config nil)
 
 (defvar keg-cli-args nil)
 (defvar keg-cli-parsing-done nil)
@@ -49,6 +51,12 @@
   "Regex matching an command.")
 
 
+
+(defun keg--flatten (lst)
+  "Return flatten list of LST."
+  (let (fn)
+    (setq fn (lambda (lst) (if (atom lst) `(,lst) (mapcan fn lst))))
+    (funcall fn lst)))
 
 (defun keg-cli--string-trim (str &optional trim-left trim-right)
   "Trim STR of leading and trailing strings matching TRIM-LEFT and TRIM-RIGHT.
@@ -146,10 +154,22 @@ With COMMAND, DESC, FUNC, ARGS."
        (to-string . ,to-string))
      keg-cli-commands)))
 
-(defun keg-cli-config (file))
 (defun keg-cli-description (desc)
   "Interpret command desc with DESC."
   (setq keg-cli-description desc))
+
+(defun keg-cli-config (file)
+  "Interpreg config op with FILE."
+  (when (file-readable-p file)
+    (let* ((contents (with-temp-buffer
+                       (insert-file-contents file)
+                       (split-string (buffer-string) "\\(\r\n\\|[\n\r]\\)")))
+           (lines (cl-remove-if
+                   (lambda (elm) (or (null elm) (string= "" elm)))
+                   contents)))
+      (setq commander-default-config
+            (keg--flatten (mapcar (lambda (elm) (split-string elm " ")) lines))))))
+
 (defun keg-cli-usage ())
 (defun keg-cli-default (cmd args))
 (defun keg-cli-parse (args))
