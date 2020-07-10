@@ -204,7 +204,7 @@ With COMMAND, DESC, FUNC, ARGS."
 
 (defun keg-cli-usage ()
   "Return usage information as a string."
-  (let ((name (or keg-cli-name (f-filename load-file-name)))
+  (let ((name (or keg-cli-name (file-name-nondirectory load-file-name)))
         (commands-string
          (string-join (mapcar (lambda (elm) (keg-cli--usage-command elm)) (keg-cli--usage-commands)) "\n"))
         (options-string
