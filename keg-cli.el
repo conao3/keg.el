@@ -129,7 +129,7 @@ With COMMAND, DESC, FUNC, ARGS."
          zero-or-more
          one-or-more
          (to-string command)
-         (default-values (-take-while 'stringp args)))
+         (default-values (cl-remove-if-not 'stringp args)))
     (let ((matches (s-match (concat "\\`" keg-cli-command-re " " "<\\(.+\\)>" "\\'") command)))
       (when matches
         (setq command (nth 1 matches))
