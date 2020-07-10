@@ -89,7 +89,7 @@ function doc string."
       (push desc* (cdr args))))
   args)
 
-(defun keg-cli-option (flags desc func &rest default-values)
+(defun keg-cli-option (flags desc func default-values)
   "Interpret option op.
 With FLAGS, DESC, FUNC, DEFAULT-VALUES."
   (let (required optional zero-or-more one-or-more)
@@ -124,15 +124,14 @@ With FLAGS, DESC, FUNC, DEFAULT-VALUES."
           keg-cli-options)))
      (mapcar 'keg-cli--string-trim (split-string flags ",")))))
 
-(defun keg-cli-command (command desc func &rest args)
+(defun keg-cli-command (command desc func default-values)
   "Interpret command op.
-With COMMAND, DESC, FUNC, ARGS."
+With COMMAND, DESC, FUNC, DEFAULT-VALUES."
   (let* (required
          optional
          zero-or-more
          one-or-more
-         (to-string command)
-         (default-values (cl-remove-if-not 'stringp args)))
+         (to-string command))
     (let ((matches (string-match (concat "\\`" keg-cli-command-re " " "<\\(.+\\)>" "\\'") command)))
       (when matches
         (setq command (nth 1 matches))
