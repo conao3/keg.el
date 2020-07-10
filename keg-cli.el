@@ -1,4 +1,4 @@
-;;; keg-cli.el --- Parse CLI arguments  -*- lexical-binding: t; -*-
+;;; keg-cli.el --- Parse CLI args  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020  Naoya Yamashita
 
@@ -38,6 +38,8 @@
 (defvar keg-cli-commands nil)
 (defvar keg-cli-description nil)
 (defvar keg-cli-default-config nil)
+(defvar keg-cli-default-command nil)
+(defvar keg-cli-no-command nil)
 
 (defvar keg-cli-args nil)
 (defvar keg-cli-parsing-done nil)
@@ -68,7 +70,7 @@ TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
     res))
 
 (defun keg-cli--make-args (args)
-  "Make proper command/option arguments from ARGS.
+  "Make proper command/option args from ARGS.
 
 ARGS is the args that are passed to the `command' and `option'
 directives.  The return value is a list complete list that can be
@@ -216,7 +218,20 @@ With COMMAND, DESC, FUNC, ARGS."
      (when keg-cli-options
        (format "\n\nOPTIONS:\n\n%s" options-string)))))
 
-(defun keg-cli-default (cmd args))
+(defun keg-cli-default (cmd args)
+  "`keg-cli-default' with CMD, ARGS."
+  (if (stringp cmd)
+      (setq
+       keg-cli-default-command
+       (make-keg-cli-default-command
+        :command cmd
+        :arguments args))
+    (setq
+     keg-cli-no-command
+     (make-keg-cli-no-command
+      :function cmd
+      :arguments args))))
+
 (defun keg-cli-parse (args))
 
 (defmacro def-keg-cli (name &rest body)
