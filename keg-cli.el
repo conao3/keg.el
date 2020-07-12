@@ -108,7 +108,7 @@ function doc string."
       (push desc* (cdr args))))
   args)
 
-(defun keg-cli-option (flags desc func default-values)
+(defun keg-cli-option (flags desc func &rest default-values)
   "Interpret option op.
 With FLAGS, DESC, FUNC, DEFAULT-VALUES."
   (let (required optional zero-or-more one-or-more)
@@ -143,7 +143,7 @@ With FLAGS, DESC, FUNC, DEFAULT-VALUES."
           keg-cli-options)))
      (mapcar 'keg-cli--string-trim (split-string flags ",")))))
 
-(defun keg-cli-command (command desc func default-values)
+(defun keg-cli-command (command desc func &rest default-values)
   "Interpret command op.
 With COMMAND, DESC, FUNC, DEFAULT-VALUES."
   (let* (required
