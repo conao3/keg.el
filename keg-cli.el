@@ -57,6 +57,25 @@
 
 
 
+(defmacro keg-cli--aliaslet (bindings &rest body)
+  "Make temporary macro definitions.
+This is like `cl-flet', but for macros instead of functions for BODY.
+
+BINDINGS is list of definition.
+The definition is list like (origfn aliasfn arglist).
+
+\(fn ((NAME ALIAS ARGLIST) ...) FORM...)"
+  (declare (indent 1))
+  `(cl-macrolet ,(mapcar
+                  (lambda (elm)
+                    `(,(nth 0 elm)
+                      ,(nth 2 elm)
+                      `(apply
+                        #',',(nth 1 elm)
+                        ',(list ,@(cl-set-difference (nth 2 elm) '(&optional &rest))))))
+                  bindings)
+     ,@body))
+
 (defun keg--flatten (lst)
   "Return flatten list of LST."
   (let (fn)
@@ -254,26 +273,14 @@ BODY is `keg-cli' command definition DSL."
   (declare (indent 1))
   `(progn
      (setq keg-cli-name ,(symbol-name name))
-     ,@(mapcar
-        (lambda (elm)
-          (pcase elm
-            (`(option . ,args)
-             `(keg-cli-option ,@args))
-            (`(command . ,args)
-             `(keg-cli-command ,@args))
-            (`(parse ,args)
-             `(progn
-                (keg-cli-parse ,@args)
-                (setq keg-cli-parsing-done t)))
-            (`(description ,desc)
-             `(keg-cli-description ,@desc))
-            (`(config ',file)
-             `(keg-cli-config ,@file))
-            (`(default ,cmd . ,args)
-             `(keg-cli-default ',cmd ,@args))
-            (_
-             (error "Unknown directive: %s" elm))))
-        body)
+     (keg-cli--aliaslet
+         ((option      keg-cli-option (flags desc func &rest default-values))
+          (command     keg-cli-command (command desc func &rest default-values))
+          (description keg-cli-description (desc))
+          (config      keg-cli-config (file))
+          (default     keg-cli-default (cmd default-values))
+          (parse       keg-cli-parse (args)))
+       ,@body)
      (unless keg-cli-parsing-done
        (keg-cli-parse (or keg-cli-args (cdr command-line-args-left))))))
 
