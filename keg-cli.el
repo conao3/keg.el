@@ -270,6 +270,9 @@ NAME is command name used help command.
 BODY is `keg-cli' command definition DSL."
   (declare (indent 1))
   `(progn
+     (when (string= "--" (car command-line-args-left))
+       (pop command-line-args-left))
+
      (setq keg-cli-name ,(symbol-name name))
      (keg-cli--aliaslet
          ((option      keg-cli-option (flags desc func &rest default-values))
@@ -280,7 +283,7 @@ BODY is `keg-cli' command definition DSL."
           (parse       keg-cli-parse (args)))
        ,@body)
      (unless keg-cli-parsing-done
-       (keg-cli-parse (or keg-cli-args (cdr command-line-args-left))))))
+       (keg-cli-parse (or keg-cli-args command-line-args-left)))))
 
 (provide 'keg-cli)
 
