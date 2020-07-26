@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'let-alist)
 (require 'subr-x)
 
 (defgroup keg-cli nil
@@ -107,6 +108,87 @@ function doc string."
                      ""))))
       (push desc* (cdr args))))
   args)
+
+
+(defun keg-cli--handle-options (args)
+  "`keg-cli--handle-options' with ARGS."
+  (let (rest)
+    (while args
+      (let ((arg (pop args)))
+        (if (not (string-match (concat "\\`" keg-cli-option-re "\\'") argument))
+            (push arg rest)
+          )
+        ))
+    (nreverse rest)
+
+    (let ((matches (string-match (concat "\\`" keg-cli-option-re " " "<\\(.+\\)>" "\\'") fmt)))
+      (when matches
+        (setq flag (match-string 1 fmt))
+        (when (match-string 2 fmt)
+          (setq required t)
+          (when (equal (match-string 2 fmt) "*")
+            (setq one-or-more t)))))
+    (let ((matches (string-match (concat "\\`" keg-cli-option-re " " "\\[\\(.+\\)\\]" "\\'") fmt)))
+      (when matches
+        (setq flag (match-string 1 fmt))
+        (when (match-string 2 fmt)
+          (setq required t)
+          (when (equal (match-string 2 fmt) "*")
+            (setq one-or-more t)))))
+    (push
+     `((flag . ,flag)
+       (fmts . ,fmts)
+       (desc . ,desc)
+       (fn . ,fn)
+       (default-values . ,default-values)
+       (required . ,required)
+       (optional . ,optional)
+       (zero-or-more . ,zero-or-more)
+       (one-or-more . ,one-or-more))
+     keg-cli-options))
+
+  (let (rest (i 0))
+    (while (< i (length args))
+      (let ((argument (nth i args)))
+        (if (s-matches? (concat "\\`" keg-cli-option-re "\\'") argument)
+            (let ((keg-cli-option (keg-cli--find-option argument)))
+              (if keg-cli-option
+                  (let* ((function (keg-cli-option-function keg-cli-option))
+                         (default-values (keg-cli-option-default-values keg-cli-option))
+                         (required (keg-cli-option-required keg-cli-option))
+                         (optional (keg-cli-option-optional keg-cli-option))
+                         (zero-or-more (keg-cli-option-zero-or-more keg-cli-option))
+                         (one-or-more (keg-cli-option-one-or-more keg-cli-option))
+                         (option-arguments
+                          (when (or required optional)
+                            (if (or (and required one-or-more) (and optional zero-or-more))
+                                (let (next-arguments)
+                                  (while (and (nth (1+ i) args) (not (s-matches? (concat "\\` " keg-cli-option-re "\\'") (nth (1+ i) args))))
+                                    (setq i (1+ i))
+                                    (push (nth i args) next-arguments))
+                                  (nreverse next-arguments))
+                              (when (and (nth (1+ i) args) (not (s-matches? (concat "\\`" keg-cli-option-re "\\'") (nth (1+ i) args))))
+                                (setq i (1+ i))
+                                (nth i args))))))
+                    (cond (required
+                           (if option-arguments
+                               (if one-or-more
+                                   (apply function option-arguments)
+                                 (funcall function option-arguments))
+                             (if one-or-more
+                                 (error "Option `%s` requires at least one argument" argument)
+                               (error "Option `%s` requires argument" argument))))
+                          (optional
+                           (if zero-or-more
+                               (apply function (or option-arguments default-values))
+                             (if option-arguments
+                                 (funcall function option-arguments)
+                               (apply function default-values))))
+                          (t (funcall function))))
+                (error "Option `%s` not available" argument)))
+          (push argument rest)))
+      (setq i (1+ i)))
+    (nreverse rest)))
 
 (defun keg-cli-option (fmts desc fn &rest default-values)
   "Interpret option op.
@@ -253,16 +335,16 @@ With COMMAND, DESC, FUNC, DEFAULT-VALUES."
 
 (defun keg-cli-parse (args)
   "`keg-cli-parse' with ARGS."
-  (unless (bound-and-true-p commander-ignore)
-    (let* ((rest-config (keg-cli--handle-options keg-cli-default-config))
-           (rest (or (keg-cli--handle-options args) rest-config)))
-      (unless rest
-        (if keg-cli-default-command
-            (let ((command (keg-cli-default-command-command keg-cli-default-command))
-                  (args (keg-cli-default-command-arguments keg-cli-default-command)))
-              (setq rest (cons command args)))))
-      (keg-cli--handle-command rest)))
-  (setq keg-cli-parsing-done t))
+  (setq keg-cli-parsing-done t)
+  (let* ((rest-config nil ;; (keg-cli--handle-options keg-cli-default-config)
+                      )
+         (rest (or (keg-cli--handle-options args) rest-config)))
+    (unless rest
+      (if keg-cli-default-command
+          (let ((command (keg-cli-default-command-command keg-cli-default-command))
+                (args (keg-cli-default-command-arguments keg-cli-default-command)))
+            (setq rest (cons command args)))))
+    (keg-cli--handle-command rest)))
 
 (defmacro define-keg-cli (name &rest body)
   "Define command parser.
