@@ -314,7 +314,7 @@ This function is polyfill for Emacs<24.4."
               (default-values (keg-commander-command-default-values keg-commander-command))
               (required (keg-commander-command-required keg-commander-command))
               (optional (keg-commander-command-optional keg-commander-command))
-              (zero-or-more (keg-commander-command-zero-or-more keg-commander-command))
+              (_zero-or-more (keg-commander-command-zero-or-more keg-commander-command))
               (one-or-more (keg-commander-command-one-or-more keg-commander-command)))
           (unless rest
             (setq rest default-values))
@@ -341,19 +341,15 @@ This function is polyfill for Emacs<24.4."
 
 (defun keg-commander--usage-options ()
   "Return usage of options."
-  (let ((-compare-fn
-         (lambda (option-a option-b)
-           (string=
-            (keg-commander-option-to-string option-a)
-            (keg-commander-option-to-string option-b)))))
-    (nreverse (cl-delete-duplicates keg-commander-options))))
+  (nreverse (cl-delete-duplicates keg-commander-options)))
 
 
 ;;;; Usage
 
 (defun keg-commander--usage-padding ()
   "Return padding."
-  (let (max-option (max-option-value 0) max-command (max-command-value 0))
+  (let ((max-option-value 0)
+        (max-command-value 0))
     (dolist (it keg-commander-options)
       (setq max-option-value (max max-option-value (length (keg-commander-option-to-string it)))))
     (dolist (it keg-commander-commands)
