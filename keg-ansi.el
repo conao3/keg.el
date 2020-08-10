@@ -30,7 +30,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'subr-x)
 
 (defgroup keg-ansi nil
   "Utility for ANSI terminal escape codes."
