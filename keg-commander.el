@@ -568,8 +568,8 @@ function doc string."
     (let ((description
            (let ((description (documentation (nth 1 args))))
              (if description
-                (keg-commander-s-lines description)
-              ""))))
+                 (keg-commander-s-lines description)
+               ""))))
       (setq args (keg-commander-dash-insert-at 1 description args))))
   args)
 

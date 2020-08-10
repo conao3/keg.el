@@ -357,13 +357,13 @@ BODY is `keg-cli' command definition DSL."
 
      (setq keg-cli-name ,(symbol-name name))
      (keg-cli--aliaslet
-         ((option      keg-cli-option (flags desc func &rest default-values))
-          (command     keg-cli-command (command desc func &rest default-values))
-          (description keg-cli-description (desc))
-          (config      keg-cli-config (file))
-          (default     keg-cli-default (cmd default-values))
-          (parse       keg-cli-parse (args)))
-       ,@body)
+      ((option      keg-cli-option (flags desc func &rest default-values))
+       (command     keg-cli-command (command desc func &rest default-values))
+       (description keg-cli-description (desc))
+       (config      keg-cli-config (file))
+       (default     keg-cli-default (cmd default-values))
+       (parse       keg-cli-parse (args)))
+      ,@body)
      (unless keg-cli-parsing-done
        (keg-cli-parse (or keg-cli-args command-line-args-left)))))
 
