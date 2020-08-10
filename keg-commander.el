@@ -4,7 +4,7 @@
 
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
-;; ;; Package-Requires: ((dash "2.0.0") (cl-lib "0.3"))
+;; ;; Package-Requires: ((cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -30,7 +30,6 @@
 
 
 (require 'cl-lib)
-(require 'dash)
 
 
 
@@ -231,16 +230,34 @@ This function is polyfill for Emacs<24.4."
   (declare (pure t) (side-effect-free t))
   (or (null s) (string= "" s)))
 
+(defun keg-commander-dash-take-while (pred list)
+  "Return a new list of successive items from LIST while (PRED item) return a non-nil value."
+  (let (res)
+    (while (and list (funcall pred (car list)))
+      (push (pop list) res))
+    (nreverse res)))
+
+(defun keg-commander-dash-flatten (lst)
+  "Return flatten list of LST."
+  (let (fn)
+    (setq fn (lambda (lst) (if (atom lst) `(,lst) (mapcan fn lst))))
+    (funcall fn lst)))
+
+(defun keg-commander-dash-insert-at (n x list)
+  "Return a list with X inserted into LIST at position N."
+  (push x (nthcdr n list))
+  list)
+
 
 
 (defun keg-commander--find-option (option)
-  (-first
+  (cl-find-if
    (lambda (keg-commander-option)
      (equal (keg-commander-option-flag keg-commander-option) option))
    keg-commander-options))
 
 (defun keg-commander--find-command (command)
-  (-first
+  (cl-find-if
    (lambda (keg-commander-command)
      (equal (keg-commander-command-command keg-commander-command) command))
    keg-commander-commands))
@@ -328,16 +345,16 @@ This function is polyfill for Emacs<24.4."
            (string=
             (keg-commander-option-to-string option-a)
             (keg-commander-option-to-string option-b)))))
-    (nreverse (-uniq keg-commander-options))))
+    (nreverse (cl-delete-duplicates keg-commander-options))))
 
 
 ;;;; Usage
 
 (defun keg-commander--usage-padding ()
   (let (max-option (max-option-value 0) max-command (max-command-value 0))
-    (--each keg-commander-options
+    (dolist (it keg-commander-options)
       (setq max-option-value (max max-option-value (length (keg-commander-option-to-string it)))))
-    (--each keg-commander-commands
+    (dolist (it keg-commander-commands)
       (setq max-command-value (max max-command-value (length (keg-commander-command-to-string it)))))
     (+ (max max-option-value max-command-value) 10)))
 
@@ -352,8 +369,8 @@ This function is polyfill for Emacs<24.4."
      (car description)
      (keg-commander-s-join
       ""
-      (--map
-       (concat "\n" (keg-commander-s-repeat (1+ padding) " ") it)
+      (mapcar
+       (lambda (it) (concat "\n" (keg-commander-s-repeat (1+ padding) " ") it))
        (cdr description))))))
 
 (defun keg-commander--usage-command (keg-commander-command)
@@ -370,9 +387,9 @@ This function is polyfill for Emacs<24.4."
   "Return usage information as a string."
   (let ((name (or keg-commander-name (keg-commander-f-filename load-file-name)))
         (commands-string
-         (keg-commander-s-join "\n" (--map (keg-commander--usage-command it) (keg-commander--usage-commands))))
+         (keg-commander-s-join "\n" (mapcar (lambda (it) (keg-commander--usage-command it)) (keg-commander--usage-commands))))
         (options-string
-         (keg-commander-s-join "\n" (--map (keg-commander--usage-option it) (keg-commander--usage-options)))))
+         (keg-commander-s-join "\n" (mapcar (lambda (it) (keg-commander--usage-option it)) (keg-commander--usage-options)))))
     (concat
      (format "USAGE: %s [COMMAND] [OPTIONS]" name)
      (when keg-commander-description
@@ -386,12 +403,13 @@ This function is polyfill for Emacs<24.4."
   "Return description for COMMAND-NAME.
 
 Return value is always a list with one item for each row."
-  (-if-let (command (keg-commander--find-command command-name))
-      (let ((description (keg-commander-command-description command)))
-        (unless (listp description)
-          (setq description (list description)))
-        description)
-    (error "No such command: %s" command-name)))
+  (let ((command (keg-commander--find-command command-name)))
+    (if command
+        (let ((description (keg-commander-command-description command)))
+          (unless (listp description)
+            (setq description (list description)))
+          description)
+      (error "No such command: %s" command-name))))
 
 (defun keg-commander-print-usage ()
   "Print usage information."
@@ -399,9 +417,8 @@ Return value is always a list with one item for each row."
 
 (defun keg-commander-print-usage-for (command-name)
   "Print usage information for COMMAND-NAME."
-  (-each (keg-commander-usage-for command-name)
-         (lambda (row)
-           (princ (concat row "\n")))))
+  (dolist (row (keg-commander-usage-for command-name))
+    (princ (concat row "\n"))))
 
 (defun keg-commander-print-usage-and-exit (&optional exit-code)
   "Print usage information and exit.
@@ -423,7 +440,7 @@ code is 0."
 
 (defun keg-commander-option (flags description function &rest default-values)
   (let (required optional zero-or-more one-or-more)
-    (-map
+    (mapcar
      (lambda (flag)
        (let ((to-string flags))
          (let ((matches (keg-commander-s-match (concat "\\`" keg-commander-option-re " " "<\\(.+\\)>" "\\'") flag)))
@@ -453,7 +470,7 @@ code is 0."
            :zero-or-more zero-or-more
            :one-or-more one-or-more
            :to-string to-string))))
-     (-map 'keg-commander-string-trim (split-string "," flags)))))
+     (mapcar #'keg-commander-string-trim (split-string "," flags)))))
 
 (defun keg-commander-command (command description function &rest args)
   (let* (required
@@ -461,7 +478,7 @@ code is 0."
          zero-or-more
          one-or-more
          (to-string command)
-         (default-values (-take-while 'stringp args)))
+         (default-values (keg-commander-dash-take-while 'stringp args)))
     (let ((matches (keg-commander-s-match (concat "\\`" keg-commander-command-re " " "<\\(.+\\)>" "\\'") command)))
       (when matches
         (setq command (nth 1 matches))
@@ -515,9 +532,9 @@ will be ignored.  This is useful in for example unit tests."
 
 (defun keg-commander-config (file)
   (when (file-regular-p file)
-    (let ((lines (-reject 'keg-commander-s-blank? (keg-commander-s-lines (keg-commander-f-read-text file 'utf-8)))))
+    (let ((lines (cl-delete-if #'keg-commander-s-blank? (keg-commander-s-lines (keg-commander-f-read-text file 'utf-8)))))
       (setq keg-commander-default-config
-            (-flatten (--map (split-string " " it) lines))))))
+            (keg-commander-dash-flatten (mapcar (lambda (it) (split-string " " it)) lines))))))
 
 (defun keg-commander-default (command-or-function arguments)
   (if (stringp command-or-function)
@@ -545,10 +562,11 @@ If ARGS does not contain documentation, it is fetched from the
 function doc string."
   (when (functionp (nth 1 args))
     (let ((description
-           (-if-let (description (documentation (nth 1 args)))
-               (keg-commander-s-lines description)
-             "")))
-      (setq args (-insert-at 1 description args))))
+           (let ((description (documentation (nth 1 args))))
+             (if description
+                (keg-commander-s-lines description)
+              ""))))
+      (setq args (keg-commander-dash-insert-at 1 description args))))
   args)
 
 (defmacro keg-commander (&rest forms)
@@ -561,33 +579,31 @@ function doc string."
      (setq keg-commander-default-command nil)
      (setq keg-commander-no-command nil)
      (setq keg-commander-parsing-done nil)
-     (-each
-      ',forms
-      (lambda (form)
-        (cl-case (car form)
-          (option
-           (cl-destructuring-bind (_ &rest args) form
-             (apply 'keg-commander-option (keg-commander--make-args args))))
-          (command
-           (cl-destructuring-bind (_ &rest args) form
-             (apply 'keg-commander-command (keg-commander--make-args args))))
-          (parse
-           (cl-destructuring-bind (_ arguments) form
-             (keg-commander-parse arguments)
-             (setq keg-commander-parsing-done t)))
-          (name
-           (cl-destructuring-bind (_ name) form
-             (keg-commander-name name)))
-          (description
-           (cl-destructuring-bind (_ description) form
-             (keg-commander-description description)))
-          (config
-           (cl-destructuring-bind (_ file) form
-             (keg-commander-config file)))
-          (default
-            (cl-destructuring-bind (_ command-or-function &rest arguments) form
-              (keg-commander-default command-or-function arguments)))
-          (t (error "Unknown directive: %S" form)))))
+     (dolist (form ',forms)
+       (cl-case (car form)
+         (option
+          (cl-destructuring-bind (_ &rest args) form
+            (apply 'keg-commander-option (keg-commander--make-args args))))
+         (command
+          (cl-destructuring-bind (_ &rest args) form
+            (apply 'keg-commander-command (keg-commander--make-args args))))
+         (parse
+          (cl-destructuring-bind (_ arguments) form
+            (keg-commander-parse arguments)
+            (setq keg-commander-parsing-done t)))
+         (name
+          (cl-destructuring-bind (_ name) form
+            (keg-commander-name name)))
+         (description
+          (cl-destructuring-bind (_ description) form
+            (keg-commander-description description)))
+         (config
+          (cl-destructuring-bind (_ file) form
+            (keg-commander-config file)))
+         (default
+           (cl-destructuring-bind (_ command-or-function &rest arguments) form
+             (keg-commander-default command-or-function arguments)))
+         (t (error "Unknown directive: %S" form))))
      (unless keg-commander-parsing-done
        (keg-commander-parse (or keg-commander-args (cdr command-line-args-left))))))
 
