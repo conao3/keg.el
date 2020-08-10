@@ -24,13 +24,15 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
+;;; Commentary:
+
+;; Emacs command line parser.
+
 ;;; Code:
 
 
 
 (require 'cl-lib)
-
-
 
 (cl-defstruct keg-commander-option
   "Structure describing an option.
