@@ -190,9 +190,7 @@ This is a simple wrapper around the built-in `string-match-p'."
   (mapconcat 'identity strings separator))
 
 (defun keg-commander-s-match (regexp s &optional start)
-  "When the given expression matches the string, this function returns a list
-of the whole matching string and a string for each matched subexpressions.
-If it did not match the returned value is an empty list (nil).
+  "Return matching string when the REGEXP match for S.
 
 When START is non-nil the search will start at that index."
   (declare (side-effect-free t))
@@ -248,18 +246,21 @@ This function is polyfill for Emacs<24.4."
 
 
 (defun keg-commander--find-option (option)
+  "Find option from OPTION."
   (cl-find-if
    (lambda (keg-commander-option)
      (equal (keg-commander-option-flag keg-commander-option) option))
    keg-commander-options))
 
 (defun keg-commander--find-command (command)
+  "Find command from COMMAND."
   (cl-find-if
    (lambda (keg-commander-command)
      (equal (keg-commander-command-command keg-commander-command) command))
    keg-commander-commands))
 
 (defun keg-commander--handle-options (arguments)
+  "Find options from ARGUMENTS."
   (let (rest (i 0))
     (while (< i (length arguments))
       (let ((argument (nth i arguments)))
@@ -304,6 +305,7 @@ This function is polyfill for Emacs<24.4."
     (nreverse rest)))
 
 (defun keg-commander--handle-command (arguments)
+  "Handle command for ARGUMENTS."
   (let* ((command (car arguments))
          (rest (cdr arguments))
          (keg-commander-command (keg-commander--find-command command)))
@@ -334,9 +336,11 @@ This function is polyfill for Emacs<24.4."
         (when command (error "Command `%s` not available" command))))))
 
 (defun keg-commander--usage-commands ()
+  "Return usage of commands."
   (nreverse keg-commander-commands))
 
 (defun keg-commander--usage-options ()
+  "Return usage of options."
   (let ((-compare-fn
          (lambda (option-a option-b)
            (string=
@@ -348,6 +352,7 @@ This function is polyfill for Emacs<24.4."
 ;;;; Usage
 
 (defun keg-commander--usage-padding ()
+  "Return padding."
   (let (max-option (max-option-value 0) max-command (max-command-value 0))
     (dolist (it keg-commander-options)
       (setq max-option-value (max max-option-value (length (keg-commander-option-to-string it)))))
@@ -356,6 +361,7 @@ This function is polyfill for Emacs<24.4."
     (+ (max max-option-value max-command-value) 10)))
 
 (defun keg-commander--usage-command-or-option (to-string description)
+  "Retturn usage command or option with TO-STRING and DESCRIPTION."
   (unless (listp description)
     (setq description (list description)))
   (let ((padding (keg-commander--usage-padding)))
@@ -371,11 +377,13 @@ This function is polyfill for Emacs<24.4."
        (cdr description))))))
 
 (defun keg-commander--usage-command (keg-commander-command)
+  "Return usage of command for KEG-COMMANDER-COMMAND."
   (let ((to-string (keg-commander-command-to-string keg-commander-command))
         (description (keg-commander-command-description keg-commander-command)))
     (keg-commander--usage-command-or-option to-string description)))
 
 (defun keg-commander--usage-option (keg-commander-option)
+  "Return usage of option for KEG-COMMANDER-OPTION."
   (let ((to-string (keg-commander-option-to-string keg-commander-option))
         (description (keg-commander-option-description keg-commander-option)))
     (keg-commander--usage-command-or-option to-string description)))
@@ -436,6 +444,8 @@ code is 0."
 
 
 (defun keg-commander-option (flags description function &rest default-values)
+  "Define option with FLAGS DESCRIPTION.
+FUNCTION is related function with invoked DEFAULT-VALUES if omit arguments."
   (let (required optional zero-or-more one-or-more)
     (mapcar
      (lambda (flag)
@@ -470,6 +480,8 @@ code is 0."
      (mapcar #'keg-commander-string-trim (split-string "," flags)))))
 
 (defun keg-commander-command (command description function &rest args)
+  "Define COMMAND with DESCRIPTION.
+FUNCTION is related function with ARGS."
   (let* (required
          optional
          zero-or-more
@@ -504,13 +516,14 @@ code is 0."
       :to-string to-string))))
 
 (defun keg-commander-ignore-p ()
-  "Returns true if parsing should be ignored, false otherwise.
+  "Return non-nil if parsing should be ignored, false otherwise.
 
 By setting the variable `keg-commander-ignore' to true, the parsing
 will be ignored.  This is useful in for example unit tests."
   (and (boundp 'keg-commander-ignore) keg-commander-ignore))
 
 (defun keg-commander-parse (arguments)
+  "Parse ARGUMENTS."
   (unless (keg-commander-ignore-p)
     (let* ((rest-config (keg-commander--handle-options keg-commander-default-config))
            (rest (or (keg-commander--handle-options arguments) rest-config)))
@@ -522,18 +535,22 @@ will be ignored.  This is useful in for example unit tests."
       (keg-commander--handle-command rest))))
 
 (defun keg-commander-name (name)
+  "Define command NAME."
   (setq keg-commander-name name))
 
 (defun keg-commander-description (description)
+  "Define command DESCRIPTION."
   (setq keg-commander-description description))
 
 (defun keg-commander-config (file)
+  "Define command config FILE."
   (when (file-regular-p file)
     (let ((lines (cl-delete-if #'keg-commander-s-blank? (keg-commander-s-lines (keg-commander-f-read-text file 'utf-8)))))
       (setq keg-commander-default-config
             (keg-commander-dash-flatten (mapcar (lambda (it) (split-string " " it)) lines))))))
 
 (defun keg-commander-default (command-or-function arguments)
+  "Define default ARGUMENTS for COMMAND-OR-FUNCTION."
   (if (stringp command-or-function)
       (setq
        keg-commander-default-command
@@ -552,7 +569,7 @@ will be ignored.  This is useful in for example unit tests."
   "Make proper command/option arguments from ARGS.
 
 ARGS is the args that are passed to the `command' and `option'
-directives. The return value is a list complete list that can be
+directives.  The return value is a list complete list that can be
 sent to `keg-commander-command' and `keg-commander-options'.
 
 If ARGS does not contain documentation, it is fetched from the
@@ -567,6 +584,7 @@ function doc string."
   args)
 
 (defmacro keg-commander (&rest forms)
+  "Define commander using FORMS."
   `(progn
      (setq keg-commander-default-config nil)
      (setq keg-commander-options nil)
