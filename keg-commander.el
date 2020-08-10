@@ -4,7 +4,7 @@
 
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
-;; ;; Package-Requires: ((s "1.6.0") (dash "2.0.0") (cl-lib "0.3") (f "0.6.1"))
+;; ;; Package-Requires: ((s "1.6.0") (dash "2.0.0") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -30,7 +30,6 @@
 
 
 (require 'cl-lib)
-(require 'f)
 (require 's)
 (require 'dash)
 
@@ -143,6 +142,31 @@ Slots:
 (defconst keg-commander-command-re
   "\\([A-Za-z0-9][A-Za-z0-9-]*\\)"
   "Regex matching an command.")
+
+
+;;; Polifill functions
+
+(defun keg-commander-f-filename (path)
+  "Return the name of PATH."
+  (file-name-nondirectory (directory-file-name path)))
+
+(defun keg-commander-f-read-bytes (path)
+  "Read binary data from PATH.
+
+Return the binary data as unibyte string."
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (setq buffer-file-coding-system 'binary)
+    (insert-file-contents-literally path)
+    (buffer-substring-no-properties (point-min) (point-max))))
+
+(defun keg-commander-f-read-text (path &optional coding)
+  "Read text with PATH, using CODING.
+
+CODING defaults to `utf-8'.
+
+Return the decoded text as multibyte string."
+  (decode-coding-string (keg-commander-f-read-bytes path) (or coding 'utf-8)))
 
 
 
@@ -281,7 +305,7 @@ Slots:
 
 (defun keg-commander-usage ()
   "Return usage information as a string."
-  (let ((name (or keg-commander-name (f-filename load-file-name)))
+  (let ((name (or keg-commander-name (keg-commander-f-filename load-file-name)))
         (commands-string
          (s-join "\n" (--map (keg-commander--usage-command it) (keg-commander--usage-commands))))
         (options-string
@@ -427,8 +451,8 @@ will be ignored.  This is useful in for example unit tests."
   (setq keg-commander-description description))
 
 (defun keg-commander-config (file)
-  (when (f-file? file)
-    (let ((lines (-reject 's-blank? (s-lines (f-read-text file 'utf-8)))))
+  (when (file-regular-p file)
+    (let ((lines (-reject 's-blank? (s-lines (keg-commander-f-read-text file 'utf-8)))))
       (setq keg-commander-default-config
             (-flatten (--map (s-split " " it) lines))))))
 
