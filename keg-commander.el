@@ -4,10 +4,7 @@
 
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
-;; Version: 0.7.0
-;; Keywords: cli, argv
-;; URL: http://github.com/rejeep/keg-commander.el
-;; Package-Requires: ((s "1.6.0") (dash "2.0.0") (cl-lib "0.3") (f "0.6.1"))
+;; ;; Package-Requires: ((s "1.6.0") (dash "2.0.0") (cl-lib "0.3") (f "0.6.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
