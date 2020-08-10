@@ -4,7 +4,7 @@
 
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
-;; ;; Package-Requires: ((s "1.6.0") (dash "2.0.0") (cl-lib "0.3"))
+;; ;; Package-Requires: ((dash "2.0.0") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -30,7 +30,6 @@
 
 
 (require 'cl-lib)
-(require 's)
 (require 'dash)
 
 
@@ -168,6 +167,70 @@ CODING defaults to `utf-8'.
 Return the decoded text as multibyte string."
   (decode-coding-string (keg-commander-f-read-bytes path) (or coding 'utf-8)))
 
+(defun keg-commander-s--truthy? (val)
+  (declare (pure t) (side-effect-free t))
+  (not (null val)))
+
+(defun keg-commander-s-matches? (regexp s &optional start)
+  "Does REGEXP match S?
+If START is non-nil the search starts at that index.
+
+This is a simple wrapper around the built-in `string-match-p'."
+  (declare (side-effect-free t))
+  (keg-commander-s--truthy? (string-match-p regexp s start)))
+
+(defun keg-commander-s-repeat (num s)
+  "Make a string of S repeated NUM times."
+  (declare (pure t) (side-effect-free t))
+  (let (ss)
+    (while (> num 0)
+      (setq ss (cons s ss))
+      (setq num (1- num)))
+    (apply 'concat ss)))
+
+(defun keg-commander-s-join (separator strings)
+  "Join all the strings in STRINGS with SEPARATOR in between."
+  (declare (pure t) (side-effect-free t))
+  (mapconcat 'identity strings separator))
+
+(defun keg-commander-s-match (regexp s &optional start)
+  "When the given expression matches the string, this function returns a list
+of the whole matching string and a string for each matched subexpressions.
+If it did not match the returned value is an empty list (nil).
+
+When START is non-nil the search will start at that index."
+  (declare (side-effect-free t))
+  (save-match-data
+    (if (string-match regexp s start)
+        (let ((match-data-list (match-data))
+              result)
+          (while match-data-list
+            (let* ((beg (car match-data-list))
+                   (end (cadr match-data-list))
+                   (subs (if (and beg end) (substring s beg end) nil)))
+              (setq result (cons subs result))
+              (setq match-data-list
+                    (cddr match-data-list))))
+          (nreverse result)))))
+
+(defun keg-commander-s-lines (s)
+  "Splits S into a list of strings on newline characters."
+  (declare (pure t) (side-effect-free t))
+  (split-string "\\(\r\n\\|[\n\r]\\)" s))
+
+(defun keg-commander-string-trim (str)
+  "Trim STR of leading and trailing space like strings.
+
+TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\".
+Original function is `string-trim'.
+This function is polyfill for Emacs<24.4."
+  (replace-regexp-in-string "\\`[ \t\n\r]*\\|[ \t\n\r]*\\'" "" str))
+
+(defun keg-commander-s-blank? (s)
+  "Is S nil or the empty string?"
+  (declare (pure t) (side-effect-free t))
+  (or (null s) (string= "" s)))
+
 
 
 (defun keg-commander--find-option (option)
@@ -186,7 +249,7 @@ Return the decoded text as multibyte string."
   (let (rest (i 0))
     (while (< i (length arguments))
       (let ((argument (nth i arguments)))
-        (if (s-matches? (concat "\\`" keg-commander-option-re "\\'") argument)
+        (if (keg-commander-s-matches? (concat "\\`" keg-commander-option-re "\\'") argument)
             (let ((keg-commander-option (keg-commander--find-option argument)))
               (if keg-commander-option
                   (let* ((function (keg-commander-option-function keg-commander-option))
@@ -199,11 +262,11 @@ Return the decoded text as multibyte string."
                           (when (or required optional)
                             (if (or (and required one-or-more) (and optional zero-or-more))
                                 (let (next-arguments)
-                                  (while (and (nth (1+ i) arguments) (not (s-matches? (s-concat "\\`" keg-commander-option-re "\\'") (nth (1+ i) arguments))))
+                                  (while (and (nth (1+ i) arguments) (not (keg-commander-s-matches? (concat "\\`" keg-commander-option-re "\\'") (nth (1+ i) arguments))))
                                     (setq i (1+ i))
                                     (push (nth i arguments) next-arguments))
                                   (nreverse next-arguments))
-                              (when (and (nth (1+ i) arguments) (not (s-matches? (s-concat "\\`" keg-commander-option-re "\\'") (nth (1+ i) arguments))))
+                              (when (and (nth (1+ i) arguments) (not (keg-commander-s-matches? (concat "\\`" keg-commander-option-re "\\'") (nth (1+ i) arguments))))
                                 (setq i (1+ i))
                                 (nth i arguments))))))
                     (cond (required
@@ -282,15 +345,15 @@ Return the decoded text as multibyte string."
   (unless (listp description)
     (setq description (list description)))
   (let ((padding (keg-commander--usage-padding)))
-    (s-concat
+    (concat
      " "
      to-string
-     (s-repeat (- padding (length to-string)) " ")
+     (keg-commander-s-repeat (- padding (length to-string)) " ")
      (car description)
-     (s-join
+     (keg-commander-s-join
       ""
       (--map
-       (s-concat "\n" (s-repeat (1+ padding) " ") it)
+       (concat "\n" (keg-commander-s-repeat (1+ padding) " ") it)
        (cdr description))))))
 
 (defun keg-commander--usage-command (keg-commander-command)
@@ -307,17 +370,17 @@ Return the decoded text as multibyte string."
   "Return usage information as a string."
   (let ((name (or keg-commander-name (keg-commander-f-filename load-file-name)))
         (commands-string
-         (s-join "\n" (--map (keg-commander--usage-command it) (keg-commander--usage-commands))))
+         (keg-commander-s-join "\n" (--map (keg-commander--usage-command it) (keg-commander--usage-commands))))
         (options-string
-         (s-join "\n" (--map (keg-commander--usage-option it) (keg-commander--usage-options)))))
-    (s-concat
+         (keg-commander-s-join "\n" (--map (keg-commander--usage-option it) (keg-commander--usage-options)))))
+    (concat
      (format "USAGE: %s [COMMAND] [OPTIONS]" name)
      (when keg-commander-description
-       (s-concat "\n\n" keg-commander-description))
+       (concat "\n\n" keg-commander-description))
      (when keg-commander-commands
-       (s-concat "\n\nCOMMANDS:\n\n" commands-string))
+       (concat "\n\nCOMMANDS:\n\n" commands-string))
      (when keg-commander-options
-       (s-concat "\n\nOPTIONS:\n\n" options-string)))))
+       (concat "\n\nOPTIONS:\n\n" options-string)))))
 
 (defun keg-commander-usage-for (command-name)
   "Return description for COMMAND-NAME.
@@ -363,14 +426,14 @@ code is 0."
     (-map
      (lambda (flag)
        (let ((to-string flags))
-         (let ((matches (s-match (concat "\\`" keg-commander-option-re " " "<\\(.+\\)>" "\\'") flag)))
+         (let ((matches (keg-commander-s-match (concat "\\`" keg-commander-option-re " " "<\\(.+\\)>" "\\'") flag)))
            (when matches
              (setq flag (nth 1 matches))
              (when (nth 2 matches)
                (setq required t)
                (if (equal (nth 2 matches) "*")
                    (setq one-or-more t)))))
-         (let ((matches (s-match (concat "\\`" keg-commander-option-re " " "\\[\\(.+\\)\\]" "\\'") flag)))
+         (let ((matches (keg-commander-s-match (concat "\\`" keg-commander-option-re " " "\\[\\(.+\\)\\]" "\\'") flag)))
            (when matches
              (setq flag (nth 1 matches))
              (when (nth 2 matches)
@@ -390,7 +453,7 @@ code is 0."
            :zero-or-more zero-or-more
            :one-or-more one-or-more
            :to-string to-string))))
-     (-map 's-trim (s-split "," flags)))))
+     (-map 'keg-commander-string-trim (split-string "," flags)))))
 
 (defun keg-commander-command (command description function &rest args)
   (let* (required
@@ -399,14 +462,14 @@ code is 0."
          one-or-more
          (to-string command)
          (default-values (-take-while 'stringp args)))
-    (let ((matches (s-match (concat "\\`" keg-commander-command-re " " "<\\(.+\\)>" "\\'") command)))
+    (let ((matches (keg-commander-s-match (concat "\\`" keg-commander-command-re " " "<\\(.+\\)>" "\\'") command)))
       (when matches
         (setq command (nth 1 matches))
         (when (nth 2 matches)
           (setq required t)
           (if (equal (nth 2 matches) "*")
               (setq one-or-more t)))))
-    (let ((matches (s-match (concat "\\`" keg-commander-command-re " " "\\[\\(.+\\)\\]" "\\'") command)))
+    (let ((matches (keg-commander-s-match (concat "\\`" keg-commander-command-re " " "\\[\\(.+\\)\\]" "\\'") command)))
       (when matches
         (setq command (nth 1 matches))
         (when (nth 2 matches)
@@ -452,9 +515,9 @@ will be ignored.  This is useful in for example unit tests."
 
 (defun keg-commander-config (file)
   (when (file-regular-p file)
-    (let ((lines (-reject 's-blank? (s-lines (keg-commander-f-read-text file 'utf-8)))))
+    (let ((lines (-reject 'keg-commander-s-blank? (keg-commander-s-lines (keg-commander-f-read-text file 'utf-8)))))
       (setq keg-commander-default-config
-            (-flatten (--map (s-split " " it) lines))))))
+            (-flatten (--map (split-string " " it) lines))))))
 
 (defun keg-commander-default (command-or-function arguments)
   (if (stringp command-or-function)
@@ -483,7 +546,7 @@ function doc string."
   (when (functionp (nth 1 args))
     (let ((description
            (-if-let (description (documentation (nth 1 args)))
-               (s-lines description)
+               (keg-commander-s-lines description)
              "")))
       (setq args (-insert-at 1 description args))))
   args)
