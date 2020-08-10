@@ -369,8 +369,4 @@ BODY is `keg-cli' command definition DSL."
 
 (provide 'keg-cli)
 
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; keg-cli.el ends here

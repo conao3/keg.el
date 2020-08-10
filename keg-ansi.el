@@ -265,8 +265,4 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
 
 (provide 'keg-ansi)
 
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; keg-ansi.el ends here

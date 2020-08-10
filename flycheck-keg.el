@@ -65,4 +65,5 @@ project to `flycheck-emacs-lisp-load-path'."
                       (cons dir flycheck-emacs-lisp-load-path)))))))
 
 (provide 'flycheck-keg)
+
 ;;; flycheck-keg.el ends here

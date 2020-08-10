@@ -96,8 +96,4 @@ SUBCOMMANDS:
 
 ;; (provide 'keg-tests)
 
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; keg-tests.el ends here

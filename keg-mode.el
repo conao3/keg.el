@@ -57,4 +57,5 @@ Original variable is `lisp-mode-symbol-regexp'.")
 (add-to-list 'auto-mode-alist '("/Keg\\'" . keg-mode))
 
 (provide 'keg-mode)
+
 ;;; keg-mode.el ends here

@@ -488,8 +488,4 @@ This function is `string-join' polifill for Emacs < 24.4."
 
 (provide 'keg)
 
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; keg.el ends here
