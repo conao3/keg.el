@@ -1,4 +1,4 @@
-;;; commander.el --- Emacs command line parser
+;;; keg-commander.el --- Emacs command line parser
 
 ;; Copyright (C) 2013 Johan Andersson
 
@@ -6,7 +6,7 @@
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
 ;; Version: 0.7.0
 ;; Keywords: cli, argv
-;; URL: http://github.com/rejeep/commander.el
+;; URL: http://github.com/rejeep/keg-commander.el
 ;; Package-Requires: ((s "1.6.0") (dash "2.0.0") (cl-lib "0.3") (f "0.6.1"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -39,7 +39,7 @@
 
 
 
-(cl-defstruct commander-option
+(cl-defstruct keg-commander-option
   "Structure describing an option.
 
 Slots:
@@ -64,7 +64,7 @@ Slots:
   flag flags description function default-values required optional
   zero-or-more one-or-more to-string)
 
-(cl-defstruct commander-command
+(cl-defstruct keg-commander-command
   "Structure describing a command.
 
 Slots:
@@ -89,7 +89,7 @@ Slots:
   command description function default-values required optional
   zero-or-more one-or-more to-string)
 
-(cl-defstruct commander-default-command
+(cl-defstruct keg-commander-default-command
   "Structure describing the default command.
 
 Slots:
@@ -99,7 +99,7 @@ Slots:
 `arguments' The arguments to use for `command'."
   command arguments)
 
-(cl-defstruct commander-no-command
+(cl-defstruct keg-commander-no-command
   "Structure describing the no command.
 
 Slots:
@@ -112,77 +112,77 @@ Slots:
 
 
 
-(defvar commander-options nil
+(defvar keg-commander-options nil
   "List of all options.")
 
-(defvar commander-commands nil
+(defvar keg-commander-commands nil
   "List of all commands.")
 
-(defvar commander-parsing-done nil
+(defvar keg-commander-parsing-done nil
   "Is parsing done or not.")
 
-(defvar commander-name nil
+(defvar keg-commander-name nil
   "Name of program.")
 
-(defvar commander-description nil
+(defvar keg-commander-description nil
   "Description of program.")
 
-(defvar commander-default-config nil
+(defvar keg-commander-default-config nil
   "List of default CLI configuration options from config file.")
 
-(defvar commander-default-command nil
+(defvar keg-commander-default-command nil
   "Command to use when no command parsed.")
 
-(defvar commander-no-command nil
+(defvar keg-commander-no-command nil
   "Command to use when no command, only options and input.")
 
-(defvar commander-args nil
+(defvar keg-commander-args nil
   "If parse directive is not called explicitly, use this first, then `command-line-args-left'.")
 
-(defconst commander-option-re
+(defconst keg-commander-option-re
   "\\(-[A-Za-z0-9-]\\|--?[A-Za-z0-9][A-Za-z0-9-]+\\)"
   "Regex matching an option flag.")
 
-(defconst commander-command-re
+(defconst keg-commander-command-re
   "\\([A-Za-z0-9][A-Za-z0-9-]*\\)"
   "Regex matching an command.")
 
 
 
-(defun commander--find-option (option)
+(defun keg-commander--find-option (option)
   (-first
-   (lambda (commander-option)
-     (equal (commander-option-flag commander-option) option))
-   commander-options))
+   (lambda (keg-commander-option)
+     (equal (keg-commander-option-flag keg-commander-option) option))
+   keg-commander-options))
 
-(defun commander--find-command (command)
+(defun keg-commander--find-command (command)
   (-first
-   (lambda (commander-command)
-     (equal (commander-command-command commander-command) command))
-   commander-commands))
+   (lambda (keg-commander-command)
+     (equal (keg-commander-command-command keg-commander-command) command))
+   keg-commander-commands))
 
-(defun commander--handle-options (arguments)
+(defun keg-commander--handle-options (arguments)
   (let (rest (i 0))
     (while (< i (length arguments))
       (let ((argument (nth i arguments)))
-        (if (s-matches? (concat "\\`" commander-option-re "\\'") argument)
-            (let ((commander-option (commander--find-option argument)))
-              (if commander-option
-                  (let* ((function (commander-option-function commander-option))
-                         (default-values (commander-option-default-values commander-option))
-                         (required (commander-option-required commander-option))
-                         (optional (commander-option-optional commander-option))
-                         (zero-or-more (commander-option-zero-or-more commander-option))
-                         (one-or-more (commander-option-one-or-more commander-option))
+        (if (s-matches? (concat "\\`" keg-commander-option-re "\\'") argument)
+            (let ((keg-commander-option (keg-commander--find-option argument)))
+              (if keg-commander-option
+                  (let* ((function (keg-commander-option-function keg-commander-option))
+                         (default-values (keg-commander-option-default-values keg-commander-option))
+                         (required (keg-commander-option-required keg-commander-option))
+                         (optional (keg-commander-option-optional keg-commander-option))
+                         (zero-or-more (keg-commander-option-zero-or-more keg-commander-option))
+                         (one-or-more (keg-commander-option-one-or-more keg-commander-option))
                          (option-arguments
                           (when (or required optional)
                             (if (or (and required one-or-more) (and optional zero-or-more))
                                 (let (next-arguments)
-                                  (while (and (nth (1+ i) arguments) (not (s-matches? (s-concat "\\`" commander-option-re "\\'") (nth (1+ i) arguments))))
+                                  (while (and (nth (1+ i) arguments) (not (s-matches? (s-concat "\\`" keg-commander-option-re "\\'") (nth (1+ i) arguments))))
                                     (setq i (1+ i))
                                     (push (nth i arguments) next-arguments))
                                   (nreverse next-arguments))
-                              (when (and (nth (1+ i) arguments) (not (s-matches? (s-concat "\\`" commander-option-re "\\'") (nth (1+ i) arguments))))
+                              (when (and (nth (1+ i) arguments) (not (s-matches? (s-concat "\\`" keg-commander-option-re "\\'") (nth (1+ i) arguments))))
                                 (setq i (1+ i))
                                 (nth i arguments))))))
                     (cond (required
@@ -205,17 +205,17 @@ Slots:
       (setq i (1+ i)))
     (nreverse rest)))
 
-(defun commander--handle-command (arguments)
+(defun keg-commander--handle-command (arguments)
   (let* ((command (car arguments))
          (rest (cdr arguments))
-         (commander-command (commander--find-command command)))
-    (if commander-command
-        (let ((function (commander-command-function commander-command))
-              (default-values (commander-command-default-values commander-command))
-              (required (commander-command-required commander-command))
-              (optional (commander-command-optional commander-command))
-              (zero-or-more (commander-command-zero-or-more commander-command))
-              (one-or-more (commander-command-one-or-more commander-command)))
+         (keg-commander-command (keg-commander--find-command command)))
+    (if keg-commander-command
+        (let ((function (keg-commander-command-function keg-commander-command))
+              (default-values (keg-commander-command-default-values keg-commander-command))
+              (required (keg-commander-command-required keg-commander-command))
+              (optional (keg-commander-command-optional keg-commander-command))
+              (zero-or-more (keg-commander-command-zero-or-more keg-commander-command))
+              (one-or-more (keg-commander-command-one-or-more keg-commander-command)))
           (unless rest
             (setq rest default-values))
           (cond (required
@@ -228,39 +228,39 @@ Slots:
                  (apply function rest))
                 (t
                  (funcall function))))
-      (if commander-no-command
-          (let ((function (commander-no-command-function commander-no-command)))
+      (if keg-commander-no-command
+          (let ((function (keg-commander-no-command-function keg-commander-no-command)))
             (unless arguments
-              (setq arguments (commander-no-command-arguments commander-no-command)))
+              (setq arguments (keg-commander-no-command-arguments keg-commander-no-command)))
             (apply function arguments))
         (when command (error "Command `%s` not available" command))))))
 
-(defun commander--usage-commands ()
-  (nreverse commander-commands))
+(defun keg-commander--usage-commands ()
+  (nreverse keg-commander-commands))
 
-(defun commander--usage-options ()
+(defun keg-commander--usage-options ()
   (let ((-compare-fn
          (lambda (option-a option-b)
            (string=
-            (commander-option-to-string option-a)
-            (commander-option-to-string option-b)))))
-    (nreverse (-uniq commander-options))))
+            (keg-commander-option-to-string option-a)
+            (keg-commander-option-to-string option-b)))))
+    (nreverse (-uniq keg-commander-options))))
 
 
 ;;;; Usage
 
-(defun commander--usage-padding ()
+(defun keg-commander--usage-padding ()
   (let (max-option (max-option-value 0) max-command (max-command-value 0))
-    (--each commander-options
-      (setq max-option-value (max max-option-value (length (commander-option-to-string it)))))
-    (--each commander-commands
-      (setq max-command-value (max max-command-value (length (commander-command-to-string it)))))
+    (--each keg-commander-options
+      (setq max-option-value (max max-option-value (length (keg-commander-option-to-string it)))))
+    (--each keg-commander-commands
+      (setq max-command-value (max max-command-value (length (keg-commander-command-to-string it)))))
     (+ (max max-option-value max-command-value) 10)))
 
-(defun commander--usage-command-or-option (to-string description)
+(defun keg-commander--usage-command-or-option (to-string description)
   (unless (listp description)
     (setq description (list description)))
-  (let ((padding (commander--usage-padding)))
+  (let ((padding (keg-commander--usage-padding)))
     (s-concat
      " "
      to-string
@@ -272,84 +272,84 @@ Slots:
        (s-concat "\n" (s-repeat (1+ padding) " ") it)
        (cdr description))))))
 
-(defun commander--usage-command (commander-command)
-  (let ((to-string (commander-command-to-string commander-command))
-        (description (commander-command-description commander-command)))
-    (commander--usage-command-or-option to-string description)))
+(defun keg-commander--usage-command (keg-commander-command)
+  (let ((to-string (keg-commander-command-to-string keg-commander-command))
+        (description (keg-commander-command-description keg-commander-command)))
+    (keg-commander--usage-command-or-option to-string description)))
 
-(defun commander--usage-option (commander-option)
-  (let ((to-string (commander-option-to-string commander-option))
-        (description (commander-option-description commander-option)))
-    (commander--usage-command-or-option to-string description)))
+(defun keg-commander--usage-option (keg-commander-option)
+  (let ((to-string (keg-commander-option-to-string keg-commander-option))
+        (description (keg-commander-option-description keg-commander-option)))
+    (keg-commander--usage-command-or-option to-string description)))
 
-(defun commander-usage ()
+(defun keg-commander-usage ()
   "Return usage information as a string."
-  (let ((name (or commander-name (f-filename load-file-name)))
+  (let ((name (or keg-commander-name (f-filename load-file-name)))
         (commands-string
-         (s-join "\n" (--map (commander--usage-command it) (commander--usage-commands))))
+         (s-join "\n" (--map (keg-commander--usage-command it) (keg-commander--usage-commands))))
         (options-string
-         (s-join "\n" (--map (commander--usage-option it) (commander--usage-options)))))
+         (s-join "\n" (--map (keg-commander--usage-option it) (keg-commander--usage-options)))))
     (s-concat
      (format "USAGE: %s [COMMAND] [OPTIONS]" name)
-     (when commander-description
-       (s-concat "\n\n" commander-description))
-     (when commander-commands
+     (when keg-commander-description
+       (s-concat "\n\n" keg-commander-description))
+     (when keg-commander-commands
        (s-concat "\n\nCOMMANDS:\n\n" commands-string))
-     (when commander-options
+     (when keg-commander-options
        (s-concat "\n\nOPTIONS:\n\n" options-string)))))
 
-(defun commander-usage-for (command-name)
+(defun keg-commander-usage-for (command-name)
   "Return description for COMMAND-NAME.
 
 Return value is always a list with one item for each row."
-  (-if-let (command (commander--find-command command-name))
-      (let ((description (commander-command-description command)))
+  (-if-let (command (keg-commander--find-command command-name))
+      (let ((description (keg-commander-command-description command)))
         (unless (listp description)
           (setq description (list description)))
         description)
     (error "No such command: %s" command-name)))
 
-(defun commander-print-usage ()
+(defun keg-commander-print-usage ()
   "Print usage information."
-  (princ (concat (commander-usage) "\n")))
+  (princ (concat (keg-commander-usage) "\n")))
 
-(defun commander-print-usage-for (command-name)
+(defun keg-commander-print-usage-for (command-name)
   "Print usage information for COMMAND-NAME."
-  (-each (commander-usage-for command-name)
+  (-each (keg-commander-usage-for command-name)
          (lambda (row)
            (princ (concat row "\n")))))
 
-(defun commander-print-usage-and-exit (&optional exit-code)
+(defun keg-commander-print-usage-and-exit (&optional exit-code)
   "Print usage information and exit.
 
 If EXIT-CODE is specified, with with this code.  Default exit
 code is 0."
-  (commander-print-usage)
+  (keg-commander-print-usage)
   (kill-emacs (or exit-code 0)))
 
-(defun commander-print-usage-for-and-exit (command-name &optional exit-code)
+(defun keg-commander-print-usage-for-and-exit (command-name &optional exit-code)
   "Print usage information for COMMAND-NAME and exit.
 
 If EXIT-CODE is specified, with with this code.  Default exit
 code is 0."
-  (commander-print-usage-for command-name)
+  (keg-commander-print-usage-for command-name)
   (kill-emacs (or exit-code 0)))
 
 
 
-(defun commander-option (flags description function &rest default-values)
+(defun keg-commander-option (flags description function &rest default-values)
   (let (required optional zero-or-more one-or-more)
     (-map
      (lambda (flag)
        (let ((to-string flags))
-         (let ((matches (s-match (concat "\\`" commander-option-re " " "<\\(.+\\)>" "\\'") flag)))
+         (let ((matches (s-match (concat "\\`" keg-commander-option-re " " "<\\(.+\\)>" "\\'") flag)))
            (when matches
              (setq flag (nth 1 matches))
              (when (nth 2 matches)
                (setq required t)
                (if (equal (nth 2 matches) "*")
                    (setq one-or-more t)))))
-         (let ((matches (s-match (concat "\\`" commander-option-re " " "\\[\\(.+\\)\\]" "\\'") flag)))
+         (let ((matches (s-match (concat "\\`" keg-commander-option-re " " "\\[\\(.+\\)\\]" "\\'") flag)))
            (when matches
              (setq flag (nth 1 matches))
              (when (nth 2 matches)
@@ -357,8 +357,8 @@ code is 0."
                (if (equal (nth 2 matches) "*")
                    (setq zero-or-more t)))))
          (add-to-list
-          'commander-options
-          (make-commander-option
+          'keg-commander-options
+          (make-keg-commander-option
            :flag flag
            :flags flags
            :description description
@@ -371,21 +371,21 @@ code is 0."
            :to-string to-string))))
      (-map 's-trim (s-split "," flags)))))
 
-(defun commander-command (command description function &rest args)
+(defun keg-commander-command (command description function &rest args)
   (let* (required
          optional
          zero-or-more
          one-or-more
          (to-string command)
          (default-values (-take-while 'stringp args)))
-    (let ((matches (s-match (concat "\\`" commander-command-re " " "<\\(.+\\)>" "\\'") command)))
+    (let ((matches (s-match (concat "\\`" keg-commander-command-re " " "<\\(.+\\)>" "\\'") command)))
       (when matches
         (setq command (nth 1 matches))
         (when (nth 2 matches)
           (setq required t)
           (if (equal (nth 2 matches) "*")
               (setq one-or-more t)))))
-    (let ((matches (s-match (concat "\\`" commander-command-re " " "\\[\\(.+\\)\\]" "\\'") command)))
+    (let ((matches (s-match (concat "\\`" keg-commander-command-re " " "\\[\\(.+\\)\\]" "\\'") command)))
       (when matches
         (setq command (nth 1 matches))
         (when (nth 2 matches)
@@ -393,8 +393,8 @@ code is 0."
           (if (equal (nth 2 matches) "*")
               (setq zero-or-more t)))))
     (add-to-list
-     'commander-commands
-     (make-commander-command
+     'keg-commander-commands
+     (make-keg-commander-command
       :command command
       :description description
       :function function
@@ -405,57 +405,57 @@ code is 0."
       :one-or-more one-or-more
       :to-string to-string))))
 
-(defun commander-ignore-p ()
+(defun keg-commander-ignore-p ()
   "Returns true if parsing should be ignored, false otherwise.
 
-By setting the variable `commander-ignore' to true, the parsing
+By setting the variable `keg-commander-ignore' to true, the parsing
 will be ignored.  This is useful in for example unit tests."
-  (and (boundp 'commander-ignore) commander-ignore))
+  (and (boundp 'keg-commander-ignore) keg-commander-ignore))
 
-(defun commander-parse (arguments)
-  (unless (commander-ignore-p)
-    (let* ((rest-config (commander--handle-options commander-default-config))
-           (rest (or (commander--handle-options arguments) rest-config)))
+(defun keg-commander-parse (arguments)
+  (unless (keg-commander-ignore-p)
+    (let* ((rest-config (keg-commander--handle-options keg-commander-default-config))
+           (rest (or (keg-commander--handle-options arguments) rest-config)))
       (unless rest
-        (if commander-default-command
-            (let ((command (commander-default-command-command commander-default-command))
-                  (arguments (commander-default-command-arguments commander-default-command)))
+        (if keg-commander-default-command
+            (let ((command (keg-commander-default-command-command keg-commander-default-command))
+                  (arguments (keg-commander-default-command-arguments keg-commander-default-command)))
               (setq rest (cons command arguments)))))
-      (commander--handle-command rest))))
+      (keg-commander--handle-command rest))))
 
-(defun commander-name (name)
-  (setq commander-name name))
+(defun keg-commander-name (name)
+  (setq keg-commander-name name))
 
-(defun commander-description (description)
-  (setq commander-description description))
+(defun keg-commander-description (description)
+  (setq keg-commander-description description))
 
-(defun commander-config (file)
+(defun keg-commander-config (file)
   (when (f-file? file)
     (let ((lines (-reject 's-blank? (s-lines (f-read-text file 'utf-8)))))
-      (setq commander-default-config
+      (setq keg-commander-default-config
             (-flatten (--map (s-split " " it) lines))))))
 
-(defun commander-default (command-or-function arguments)
+(defun keg-commander-default (command-or-function arguments)
   (if (stringp command-or-function)
       (setq
-       commander-default-command
-       (make-commander-default-command
+       keg-commander-default-command
+       (make-keg-commander-default-command
         :command command-or-function
         :arguments arguments))
     (setq
-     commander-no-command
-     (make-commander-no-command
+     keg-commander-no-command
+     (make-keg-commander-no-command
       :function command-or-function
       :arguments arguments))))
 
 
 
-(defun commander--make-args (args)
+(defun keg-commander--make-args (args)
   "Make proper command/option arguments from ARGS.
 
 ARGS is the args that are passed to the `command' and `option'
 directives. The return value is a list complete list that can be
-sent to `commander-command' and `commander-options'.
+sent to `keg-commander-command' and `keg-commander-options'.
 
 If ARGS does not contain documentation, it is fetched from the
 function doc string."
@@ -467,46 +467,46 @@ function doc string."
       (setq args (-insert-at 1 description args))))
   args)
 
-(defmacro commander (&rest forms)
+(defmacro keg-commander (&rest forms)
   `(progn
-     (setq commander-default-config nil)
-     (setq commander-options nil)
-     (setq commander-commands nil)
-     (setq commander-name nil)
-     (setq commander-description nil)
-     (setq commander-default-command nil)
-     (setq commander-no-command nil)
-     (setq commander-parsing-done nil)
+     (setq keg-commander-default-config nil)
+     (setq keg-commander-options nil)
+     (setq keg-commander-commands nil)
+     (setq keg-commander-name nil)
+     (setq keg-commander-description nil)
+     (setq keg-commander-default-command nil)
+     (setq keg-commander-no-command nil)
+     (setq keg-commander-parsing-done nil)
      (-each
       ',forms
       (lambda (form)
         (cl-case (car form)
           (option
            (cl-destructuring-bind (_ &rest args) form
-             (apply 'commander-option (commander--make-args args))))
+             (apply 'keg-commander-option (keg-commander--make-args args))))
           (command
            (cl-destructuring-bind (_ &rest args) form
-             (apply 'commander-command (commander--make-args args))))
+             (apply 'keg-commander-command (keg-commander--make-args args))))
           (parse
            (cl-destructuring-bind (_ arguments) form
-             (commander-parse arguments)
-             (setq commander-parsing-done t)))
+             (keg-commander-parse arguments)
+             (setq keg-commander-parsing-done t)))
           (name
            (cl-destructuring-bind (_ name) form
-             (commander-name name)))
+             (keg-commander-name name)))
           (description
            (cl-destructuring-bind (_ description) form
-             (commander-description description)))
+             (keg-commander-description description)))
           (config
            (cl-destructuring-bind (_ file) form
-             (commander-config file)))
+             (keg-commander-config file)))
           (default
             (cl-destructuring-bind (_ command-or-function &rest arguments) form
-              (commander-default command-or-function arguments)))
+              (keg-commander-default command-or-function arguments)))
           (t (error "Unknown directive: %S" form)))))
-     (unless commander-parsing-done
-       (commander-parse (or commander-args (cdr command-line-args-left))))))
+     (unless keg-commander-parsing-done
+       (keg-commander-parse (or keg-commander-args (cdr command-line-args-left))))))
 
-(provide 'commander)
+(provide 'keg-commander)
 
-;;; commander.el ends here
+;;; keg-commander.el ends here
