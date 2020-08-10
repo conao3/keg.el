@@ -167,17 +167,13 @@ CODING defaults to `utf-8'.
 Return the decoded text as multibyte string."
   (decode-coding-string (keg-commander-f-read-bytes path) (or coding 'utf-8)))
 
-(defun keg-commander-s--truthy? (val)
-  (declare (pure t) (side-effect-free t))
-  (not (null val)))
-
 (defun keg-commander-s-matches? (regexp s &optional start)
   "Does REGEXP match S?
 If START is non-nil the search starts at that index.
 
 This is a simple wrapper around the built-in `string-match-p'."
   (declare (side-effect-free t))
-  (keg-commander-s--truthy? (string-match-p regexp s start)))
+  (not (not (string-match-p regexp s start))))
 
 (defun keg-commander-s-repeat (num s)
   "Make a string of S repeated NUM times."
