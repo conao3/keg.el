@@ -1,4 +1,4 @@
-;;; keg-commander.el --- Emacs command line parser
+;;; keg-commander.el --- Emacs command line parser  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013 Johan Andersson
 
