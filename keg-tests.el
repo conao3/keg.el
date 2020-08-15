@@ -101,8 +101,14 @@
 (source gnu melpa)
 (package (keg-file))")
     ("keg-file.el" . ""))
-  '(((file-relative-name (keg-file-dir) default-directory)
-     "./")))
+  '(((file-relative-name (keg-file-dir))
+     "./")
+
+    ((progn
+       (mkdir "test")
+       (let ((default-directory (expand-file-name "test")))
+         (file-relative-name (keg-file-dir))))
+     "../")))
 
 ;; (provide 'keg-tests)
 
