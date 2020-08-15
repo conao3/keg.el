@@ -71,6 +71,22 @@
 ;;  version
 ;;      Show ‘keg’ version."))))
 
+(cort-deftest-generate-with-hook :string= keg/keg-file
+  (lambda ()
+    (mkdir "keg--keg-file.test")
+    (let ((default-directory (expand-file-name "keg--keg-file.test/")))
+      (with-temp-file "Keg"
+        (insert "\
+(source gnu melpa)
+(package (keg-file))"))
+      (with-temp-file "keg-file.el"
+        (insert ""))))
+  (lambda ()
+    (delete-directory "keg--keg-file.test" 'recursive))
+  '(((let ((default-directory (expand-file-name "keg--keg-file.test/")))
+       (file-relative-name (keg-file-dir) default-directory))
+     "./")))
+
 ;; (provide 'keg-tests)
 
 ;;; keg-tests.el ends here
