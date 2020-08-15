@@ -4,3 +4,4 @@
 *.elc
 /.cask
 /.keg
+/*.test/
