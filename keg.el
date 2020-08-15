@@ -188,12 +188,7 @@ Duplicate requires are resolved by more restrictive."
     (let ((reqs-str (lm-with-file file
                       (lm-header "package-requires"))))
       (when reqs-str
-        (mapcar
-         (lambda (elm)
-           (let ((req (car elm))
-                 (ver (cadr elm)))
-             `(,req ,(version-to-list ver))))
-         (read reqs-str))))))
+        (read reqs-str)))))
 
 (defun keg-build--get-dependency-from-keg-file ()
   "Get development package dependency from Keg located DIR for PKG.
@@ -206,7 +201,7 @@ Return value is below form:
   <pkg>     := SYMBOL
   <req>     := (<req-pkg> <req-ver>)
   <req-pkg> := SYMBOL
-  <req-ver> := LIST                   ; like `version-to-list'"
+  <req-ver> := STRING"
   (let* ((devs (keg-file-read-section 'devs))
          ret)
     (dolist (package (keg-file-read-section 'packages))
@@ -214,7 +209,7 @@ Return value is below form:
              (_args (cdr package))
              (main-file (format "%s.el" name)))
         (push `(,name . ,(keg-build--get-dependency-from-elisp-file main-file)) ret)))
-    (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm ,(version-to-list "0.0.1"))) devs)) ret)
+    (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm "0.0.1")) devs)) ret)
     (nreverse ret)))
 
 (defun keg-build--package-archives (&optional syms)
@@ -240,11 +235,23 @@ See `package-install'."
             (reqs (cdr info)))
         (condition-case _err
             (package-download-transaction
-             (setq transaction (package-compute-transaction nil reqs)))
+             (setq transaction
+                   (package-compute-transaction
+                    nil
+                    (mapcar
+                     (lambda (elm)
+                       `(,(car elm) ,(version-to-list (cadr elm))))
+                     reqs))))
           (error                     ; refresh and retry if error
            (package-refresh-contents)
            (package-download-transaction
-            (setq transaction (package-compute-transaction nil reqs)))))))
+            (setq transaction
+                  (package-compute-transaction
+                   nil
+                   (mapcar
+                    (lambda (elm)
+                      `(,(car elm) ,(version-to-list (cadr elm))))
+                    reqs))))))))
     (unless transaction
       (keg--princ)
       (keg--princ "All dependencies already satisfied"))))

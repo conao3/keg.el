@@ -89,20 +89,9 @@ USAGE: keg install [PACKAGE]"
              (_alist (cdr info))
              (reqs (keg--alist-get name reqinfo)))
         (keg--princ (format " Package: %s" name))
-        (keg--princ (format "     Dependency: %s"
-                            (mapcar
-                             (lambda (elm)
-                               (let ((pkg (car elm))
-                                     (ver (cadr elm)))
-                                 `(,pkg ,(package-version-join ver))))
-                             reqs)))))
+        (keg--princ (format "     Dependency: %s" reqs))))
     (keg--princ (format " DevDependency: %s"
-                        (mapcar
-                         (lambda (elm)
-                           (let ((pkg (car elm))
-                                 (ver (cadr elm)))
-                             `(,pkg ,(package-version-join ver))))
-                         (keg--alist-get 'keg--devs reqinfo)))))
+                        (keg--alist-get 'keg--devs reqinfo))))
   (keg-build--resolve-dependency))
 
 (defun keg-command-exec (&rest args)
@@ -200,20 +189,9 @@ USAGE: keg info [PACKAGE]"
              (reqs (keg--alist-get name reqinfo)))
         (keg--princ (format " Package: %s" name))
         (keg--princ (format "     Recipe: %s" (keg--alist-get 'recipe alist)))
-        (keg--princ (format "     Dependency: %s"
-                            (mapcar
-                             (lambda (elm)
-                               (let ((pkg (car elm))
-                                     (ver (cadr elm)))
-                                 `(,pkg ,(package-version-join ver))))
-                             reqs)))))
+        (keg--princ (format "     Dependency: %s" reqs))))
     (keg--princ (format " DevDependency: %s"
-                        (mapcar
-                         (lambda (elm)
-                           (let ((pkg (car elm))
-                                 (ver (cadr elm)))
-                             `(,pkg ,(package-version-join ver))))
-                         (keg--alist-get 'keg--devs reqinfo))))))
+                        (keg--alist-get 'keg--devs reqinfo)))))
 
 (defun keg-command-load-path (&rest args)
   "Show Emacs appropriate `load-path' same format as PATH.
@@ -257,20 +235,9 @@ USAGE: keg debug"
              (reqs (keg--alist-get name reqinfo)))
         (keg--princ (format " Package: %s" name))
         (keg--princ (format "     Recipe: %s" (keg--alist-get 'recipe alist)))
-        (keg--princ (format "     Dependency: %s"
-                            (mapcar
-                             (lambda (elm)
-                               (let ((pkg (car elm))
-                                     (ver (cadr elm)))
-                                 `(,pkg ,(package-version-join ver))))
-                             reqs)))))
+        (keg--princ (format "     Dependency: %s" reqs))))
     (keg--princ (format " DevDependency: %s"
-                        (mapcar
-                         (lambda (elm)
-                           (let ((pkg (car elm))
-                                 (ver (cadr elm)))
-                             `(,pkg ,(package-version-join ver))))
-                         (keg--alist-get 'keg--devs reqinfo)))))
+                        (keg--alist-get 'keg--devs reqinfo))))
   (keg--princ " Keg file: %s" (keg-file-path))
   (keg--princ " Keg file parsed")
   (keg--princ (keg--indent 5 (pp-to-string (keg-file-read)))))
