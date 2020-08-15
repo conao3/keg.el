@@ -522,7 +522,8 @@ but currently %s arguments have been specified"
   (setq user-emacs-directory (keg-home-dir))
   (setq package-user-dir (keg-elpa-dir))
   (package-initialize)
-  (add-to-list 'load-path (expand-file-name default-directory)))
+  (setq load-path (delete (expand-file-name default-directory) load-path))
+  (push (expand-file-name default-directory) load-path))
 
 (provide 'keg)
 
