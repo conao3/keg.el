@@ -84,6 +84,11 @@
             `((unwind-protect
                   (let ((default-directory ,abspath))
                     (mkdir ,abspath)
+                    ,@(mapcan
+                       (lambda (e)
+                         (let ((d (file-name-directory (car e))))
+                           (when d `((mkdir ,d 'parent)))))
+                       (car elm))
                     ,@(mapcar
                        (lambda (e)
                          `(with-temp-file ,(car e)
@@ -99,11 +104,10 @@
      (file-relative-name (keg-file-dir))
      "./")
 
-    ((("Keg"))
-     (progn
-       (mkdir "test" 'parent)
-       (let ((default-directory (expand-file-name "test")))
-         (file-relative-name (keg-file-dir))))
+    ((("Keg")
+      ("test/keg-file-test.el"))
+     (let ((default-directory (expand-file-name "test")))
+       (file-relative-name (keg-file-dir)))
      "../")
 
     ((("Keg"))
