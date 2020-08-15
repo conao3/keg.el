@@ -28,48 +28,48 @@
 (require 'cort)
 (require 'keg)
 
-(cort-deftest keg/subcommand-simple
-  (cort-generate :shell-command
-    '(("keg version"
-       "Keg 0.0.1 running on Emacs 26.3")
-      ("keg help"
-       "USAGE: keg [SUBCOMMAND] [OPTIONS...]
-
-Modern Elisp package development system.
-
-SUBCOMMANDS:
- build [PACKAGE]
-     Byte compile for PACKAGE.
- clean
-     Clean ‘.elc’ files and ‘.keg’ sandbox.
- clean-elc [PACKAGE]
-     Clean ‘.elc’ files.
- debug
-     Show debug information.
- files [PACKAGE]
-     Show Elisp files associated with PACKAGE.
- emacs [ARGS...]
-     Exec Emacs with appropriate environment variables.
- eval [SEXP]
-     Eval SEXP via batch Emacs with appropriate environment variables.
- exec COMMAND [ARGS...]
-     Exec COMMAND with appropriate environment variables.
- files [PACKAGE]
-     Show files associated with PACKAGE.
- help
-     Show this help.
- info [PACKAGE]
-     Show PACKAGE information.
- init
-     Create Keg template file.
- install [PACKAGE]
-     Install PACKAGE dependencies in .keg sandbox folder.
- lint [PACKAGE]
-     Exec linters for PACKAGE.
- load-path
-     Show Emacs appropriate ‘load-path’ same format as PATH.
- version
-     Show ‘keg’ version."))))
+;; (cort-deftest keg/subcommand-simple
+;;   (cort-generate :shell-command
+;;     '(("keg version"
+;;        "Keg 0.0.1 running on Emacs 26.3")
+;;       ("keg help"
+;;        "USAGE: keg [SUBCOMMAND] [OPTIONS...]
+;;
+;; Modern Elisp package development system.
+;;
+;; SUBCOMMANDS:
+;;  build [PACKAGE]
+;;      Byte compile for PACKAGE.
+;;  clean
+;;      Clean ‘.elc’ files and ‘.keg’ sandbox.
+;;  clean-elc [PACKAGE]
+;;      Clean ‘.elc’ files.
+;;  debug
+;;      Show debug information.
+;;  files [PACKAGE]
+;;      Show Elisp files associated with PACKAGE.
+;;  emacs [ARGS...]
+;;      Exec Emacs with appropriate environment variables.
+;;  eval [SEXP]
+;;      Eval SEXP via batch Emacs with appropriate environment variables.
+;;  exec COMMAND [ARGS...]
+;;      Exec COMMAND with appropriate environment variables.
+;;  files [PACKAGE]
+;;      Show files associated with PACKAGE.
+;;  help
+;;      Show this help.
+;;  info [PACKAGE]
+;;      Show PACKAGE information.
+;;  init
+;;      Create Keg template file.
+;;  install [PACKAGE]
+;;      Install PACKAGE dependencies in .keg sandbox folder.
+;;  lint [PACKAGE]
+;;      Exec linters for PACKAGE.
+;;  load-path
+;;      Show Emacs appropriate ‘load-path’ same format as PATH.
+;;  version
+;;      Show ‘keg’ version."))))
 
 ;; (provide 'keg-tests)
 
