@@ -24,8 +24,6 @@
 
 ;;; Code:
 
-(provide 'keg-command)
-
 (require 'keg)
 
 (defvar keg-directory)
@@ -325,3 +323,5 @@ USAGE: keg debug"
       (error (format "Subcommand `%s' is not defined" op))))))
 
 ;;; keg-command.el ends here
+
+(provide 'keg-command)
