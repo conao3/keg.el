@@ -180,7 +180,7 @@ See `package-build--expand-source-file-list' from MELPA package-build."
            (or dir default-directory)
            (keg-build--config-file-list recipe))))
 
-(defun keg-build--get-dependency-from-elisp-file (file)
+(defun keg-build--get-package-requires (file)
   "Get package dependency from Package-Require header from FILE.
 Duplicate requires are resolved by more restrictive."
   (if (not (file-readable-p file))
@@ -208,7 +208,7 @@ Return value is below form:
       (let* ((name (car package))
              (_args (cdr package))
              (main-file (format "%s.el" name)))
-        (push `(,name . ,(keg-build--get-dependency-from-elisp-file main-file)) ret)))
+        (push `(,name . ,(keg-build--get-package-requires main-file)) ret)))
     (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm "0.0.1")) devs)) ret)
     (nreverse ret)))
 
