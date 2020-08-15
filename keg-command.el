@@ -30,38 +30,6 @@
 
 (defvar keg-directory)
 
-(defun keg--argument-count-check (num-min num-max subcommand args)
-  "Check number of ARGS range NUM-MIN to NUM-MAX in SUBCOMMAND.
-Meaning of -1 is no restriction."
-  (let ((num (length args)))
-    (unless (and (or (= -1 num-min)
-                     (<= num-min num))
-                 (or (= -1 num-max)
-                     (<= num num-max)))
-      (let ((usage (keg-argument-usage subcommand)))
-        (error (concat
-                "USAGE: keg"
-                (format " %s" (if usage usage subcommand))
-                "\n\n"
-                (format "The `%s' subcommand expects %s to %s arguments
-but currently %s arguments have been specified"
-                        subcommand
-                        (if (not (= -1 num-min)) num-min 0)
-                        (if (not (= -1 num-max)) num-max 'inf)
-                        num)))))))
-
-(defun keg--argument-package-check (package &optional allow-nil)
-  "Check PACKAGE is one of defined packages.
-Return package symbol if package defined.
-PACKAGE as string is also acceptable.
-If ALLOW-NIL is non-nil, it don't warn if package is nil."
-  (let ((packages (keg-packages))
-        (pkg (if (not (stringp package)) package (intern package))))
-    (if (not (memq pkg (keg-packages)))
-        (unless allow-nil
-          (warn "Package %s is not defined.  Package should one of %s" pkg packages))
-      pkg)))
-
 (defun keg-command-help (&rest args)
   "Show this help.
 ARGS is CLI arguments.

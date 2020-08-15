@@ -23,5 +23,5 @@
   (pop command-line-args-left))
 
 (add-to-list 'load-path (expand-file-name "../" (file-name-directory load-file-name)))
-(require 'keg)
+(require 'keg-command)
 (keg-command)
