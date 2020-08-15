@@ -83,7 +83,7 @@ ARGS is CLI argument.
 USAGE: keg install [PACKAGE]"
   (keg--argument-count-check -1 1 'install args)
   (keg--princ "Install dependencies")
-  (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
+  (let ((reqinfo (keg-build--get-dependency)))
     (dolist (info (keg-file-read-section 'packages))
       (let* ((name (car info))
              (_alist (cdr info))
@@ -176,7 +176,7 @@ ARGS first value is specified package.
 
 USAGE: keg info [PACKAGE]"
   (keg--argument-count-check -1 1 'info args)
-  (let ((reqinfo (keg-build--get-dependency-from-keg-file))
+  (let ((reqinfo (keg-build--get-dependency))
         (section (keg-file-read-section 'packages))
         (pkg (keg--argument-package-check (car args) 'allow)))
     (when (and pkg (not (keg--alist-get pkg section)))
@@ -228,7 +228,7 @@ ARGS is CLI argument.
 USAGE: keg debug"
   (keg--argument-count-check 0 0 'debug args)
   (keg--princ "Keg debug information")
-  (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
+  (let ((reqinfo (keg-build--get-dependency)))
     (dolist (info (keg-file-read-section 'packages))
       (let* ((name (car info))
              (alist (cdr info))

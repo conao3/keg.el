@@ -190,7 +190,7 @@ Duplicate requires are resolved by more restrictive."
       (when reqs-str
         (read reqs-str)))))
 
-(defun keg-build--get-dependency-from-keg-file ()
+(defun keg-build--get-dependency ()
   "Get development package dependency from Keg located DIR for PKG.
 Currently, ignore any args for development.
 
@@ -228,7 +228,7 @@ See `keg-archives' for symbol url mapping."
   "Fetch dependency in .keg folder.
 See `package-install'."
   (let ((package-archives (keg-build--package-archives))
-        (reqs-info (keg-build--get-dependency-from-keg-file))
+        (reqs-info (keg-build--get-dependency))
         transaction)
     (dolist (info reqs-info)
       (let ((_name (car info))
