@@ -71,44 +71,51 @@
 ;;  version
 ;;      Show ‘keg’ version."))))
 
-(defmacro cort-deftest-with-file-template (name template form)
-  "Define test with NAME TEMPLATE and FORM."
+(defmacro cort-deftest-with-file-template (name form)
+  "Define test with NAME and FORM."
   (declare (indent 1))
   (let* ((dir (format "%s.test"
                       (replace-regexp-in-string
                        "/" "--" (symbol-name name))))
          (abspath (expand-file-name dir)))
-    `(cort-deftest-generate-with-hook :equal ,name
-       (lambda ()
-         (mkdir ,dir)
-         (let ((default-directory ,abspath))
-           ,@(mapcar
-              (lambda (elm)
-                `(with-temp-file ,(car elm)
-                   (insert ,(cdr elm))))
-              (eval template))))
-       (lambda ()
-         (delete-directory ,dir 'recursive))
+    `(cort-deftest-generate :equal ,name
        ',(mapcar
           (lambda (elm)
-            `((let ((default-directory ,abspath))
-                ,(car elm))
-              ,(cadr elm)))
+            `((unwind-protect
+                  (let ((default-directory ,abspath))
+                    (mkdir ,abspath)
+                    ,@(mapcar
+                       (lambda (e)
+                         `(with-temp-file ,(car e)
+                            (insert ,(or (cdr e) ""))))
+                       (car elm))
+                    ,(cadr elm))
+                (delete-directory ,dir 'recursive))
+              ,(caddr elm)))
           (eval form)))))
 
 (cort-deftest-with-file-template keg/keg-file
-  '(("Keg" . "\
-(source gnu melpa)
-(package (keg-file))")
-    ("keg-file.el" . ""))
-  '(((file-relative-name (keg-file-dir))
+  '(((("Keg"))
+     (file-relative-name (keg-file-dir))
      "./")
 
-    ((progn
-       (mkdir "test")
+    ((("Keg"))
+     (progn
+       (mkdir "test" 'parent)
        (let ((default-directory (expand-file-name "test")))
          (file-relative-name (keg-file-dir))))
-     "../")))
+     "../")
+
+    ((("Keg"))
+     (file-relative-name (keg-file-path))
+     "Keg")
+
+    ((("Keg"))
+     (progn
+       (mkdir "test" 'parent)
+       (let ((default-directory (expand-file-name "test")))
+         (file-relative-name (keg-file-path))))
+     "../Keg")))
 
 ;; (provide 'keg-tests)
 
