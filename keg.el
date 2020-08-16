@@ -54,6 +54,47 @@
   "Alist for symbol to ELPA url.")
 
 
+;;; Small functions
+
+(defun keg--princ (&optional str &rest args)
+  "Do `princ' STR with format ARGS and put \n."
+  (when str (princ (if (stringp str)
+                       (replace-regexp-in-string
+                        "\\(\\`[\n\r]+\\)\\|\\([\n\r]+\\'\\)" ""
+                        (apply #'format str args))
+                     str)))
+  (princ "\n"))
+
+(defun keg--indent (width str)
+  "Add indent of WIDTH for STR each lines."
+  (declare (indent 1))
+  (replace-regexp-in-string "^" (make-string width ?\s) str))
+
+(defun keg--alist-get (key alist &optional default)
+  "Find the first element of ALIST whose `car' equals KEY and return its `cdr'.
+If KEY is not found in ALIST, return DEFAULT.
+For backward compatibility, TESTFN is always `eq'.
+
+This function is `alist-get' polifill for Emacs < 25.1."
+  (declare (indent 1))
+  (let ((x (assq key alist)))
+    (if x (cdr x) default)))
+
+(defun keg--string-join (strings &optional separator)
+  "Join all STRINGS using SEPARATOR.
+This function is `string-join' polifill for Emacs < 24.4."
+  (mapconcat 'identity strings separator))
+
+(defun keg--install-package (pkg)
+  "Install PKG in .keg folder."
+  (unless (package-installed-p pkg)
+    (condition-case _err
+        (package-install pkg)
+      (error
+       (package-refresh-contents)
+       (package-install pkg)))))
+
+
 ;;; Keg file
 
 (defun keg-file-dir ()
@@ -281,7 +322,7 @@ See `package-install'."
 (defun keg-lint (&optional package)
   "Exec linters for PACKAGE."
   (let ((package-archives (keg-build--package-archives '(gnu melpa))))
-    (keg-install-package 'package-lint))
+    (keg--install-package 'package-lint))
 
   (let ((section (keg-file-read-section 'packages))
         (linters keg-linters)
@@ -348,35 +389,6 @@ See `package-install'."
 
 ;;; Functions
 
-(defun keg--princ (&optional str &rest args)
-  "Do `princ' STR with format ARGS and put \n."
-  (when str (princ (if (stringp str)
-                       (replace-regexp-in-string
-                        "\\(\\`[\n\r]+\\)\\|\\([\n\r]+\\'\\)" ""
-                        (apply #'format str args))
-                     str)))
-  (princ "\n"))
-
-(defun keg--indent (width str)
-  "Add indent of WIDTH for STR each lines."
-  (declare (indent 1))
-  (replace-regexp-in-string "^" (make-string width ?\s) str))
-
-(defun keg--alist-get (key alist &optional default)
-  "Find the first element of ALIST whose `car' equals KEY and return its `cdr'.
-If KEY is not found in ALIST, return DEFAULT.
-For backward compatibility, TESTFN is always `eq'.
-
-This function is `alist-get' polifill for Emacs < 25.1."
-  (declare (indent 1))
-  (let ((x (assq key alist)))
-    (if x (cdr x) default)))
-
-(defun keg--string-join (strings &optional separator)
-  "Join all STRINGS using SEPARATOR.
-This function is `string-join' polifill for Emacs < 24.4."
-  (mapconcat 'identity strings separator))
-
 (defun keg--argument-package-check (package &optional allow-nil)
   "Check PACKAGE is one of defined packages.
 Return package symbol if package defined.
@@ -408,15 +420,6 @@ but currently %s arguments have been specified"
                         (if (not (= -1 num-min)) num-min 0)
                         (if (not (= -1 num-max)) num-max 'inf)
                         num)))))))
-
-(defun keg-install-package (pkg)
-  "Install PKG in .keg folder."
-  (unless (package-installed-p pkg)
-    (condition-case _err
-        (package-install pkg)
-      (error
-       (package-refresh-contents)
-       (package-install pkg)))))
 
 (defun keg-subcommands ()
   "Return keg subcommands."
