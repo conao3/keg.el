@@ -204,7 +204,7 @@ When START is non-nil the search will start at that index."
 (defun keg-commander-s-lines (s)
   "Splits S into a list of strings on newline characters."
   (declare (pure t) (side-effect-free t))
-  (split-string "\\(\r\n\\|[\n\r]\\)" s))
+  (split-string s "\\(\r\n\\|[\n\r]\\)"))
 
 (defun keg-commander-string-trim (str)
   "Trim STR of leading and trailing space like strings.
