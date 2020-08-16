@@ -472,8 +472,8 @@ but currently %s arguments have been specified"
 (defun keg-elisp-files (&optional package)
   "Return elisp files list associated with PACKAGE."
   (let ((main-file (format "%s.el" package))
-        (res (sort (cl-remove-if
-                    (lambda (elm) (not (string-match ".el$" elm)))
+        (res (sort (cl-remove-if-not
+                    (lambda (elm) (string-match ".el$" elm))
                     (keg-files package))
                    (lambda (a b)
                      (string<
