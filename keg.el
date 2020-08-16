@@ -196,7 +196,7 @@ Currently, ignore any args for development.
 Return value is below form:
   <result>  := (<pkg-req>* <dev-req>)
   <pkg-req> := (<pkg> . (<req>*))
-  <dev-req> := (keg--devs . (<req>*))
+  <dev-req> := (keg:devs . (<req>*))
   <pkg>     := SYMBOL
   <req>     := (<req-pkg> <req-ver>)
   <req-pkg> := SYMBOL
@@ -206,7 +206,7 @@ Return value is below form:
     (pcase-dolist (`(,pkg . ,_args) (keg-file-read-section 'packages))
       (let ((main-file (format "%s.el" pkg)))
         (push `(,pkg . ,(keg-build--get-package-requires main-file)) ret)))
-    (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm "0.0.1")) devs)) ret)
+    (push `(keg:devs . ,(mapcar (lambda (elm) `(,elm "0.0.1")) devs)) ret)
     (nreverse ret)))
 
 (defun keg-build--package-archives (&optional syms)
