@@ -280,7 +280,9 @@ See `package-install'."
 
 (defun keg-lint (&optional package)
   "Exec linters for PACKAGE."
-  (keg-install-package 'package-lint)
+  (let ((package-archives (keg-build--package-archives '(gnu melpa))))
+    (keg-install-package 'package-lint))
+
   (let ((section (keg-file-read-section 'packages))
         (linters keg-linters)
         (code 0))
@@ -409,13 +411,12 @@ but currently %s arguments have been specified"
 
 (defun keg-install-package (pkg)
   "Install PKG in .keg folder."
-  (let ((package-archives (keg-build--package-archives '(gnu melpa))))
-    (unless (package-installed-p pkg)
-      (condition-case _err
-          (package-install pkg)
-        (error
-         (package-refresh-contents)
-         (package-install pkg))))))
+  (unless (package-installed-p pkg)
+    (condition-case _err
+        (package-install pkg)
+      (error
+       (package-refresh-contents)
+       (package-install pkg)))))
 
 (defun keg-subcommands ()
   "Return keg subcommands."
