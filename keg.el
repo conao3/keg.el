@@ -228,25 +228,18 @@ See `package-install'."
         (reqs-info (keg-build-get-dependency))
         transaction)
     (pcase-dolist (`(,_pkg . ,reqs) reqs-info)
-      (condition-case _err
-          (package-download-transaction
-           (setq transaction
-                 (package-compute-transaction
-                  nil
-                  (mapcar
-                   (lambda (elm)
-                     `(,(car elm) ,(version-to-list (cadr elm))))
-                   reqs))))
-        (error                     ; refresh and retry if error
-         (package-refresh-contents)
-         (package-download-transaction
-          (setq transaction
-                (package-compute-transaction
-                 nil
-                 (mapcar
-                  (lambda (elm)
-                    `(,(car elm) ,(version-to-list (cadr elm))))
-                  reqs)))))))
+      (let ((transaction
+             (package-compute-transaction
+              nil
+              (mapcar
+               (lambda (elm)
+                 `(,(car elm) ,(version-to-list (cadr elm))))
+               reqs))))
+        (condition-case _err
+            (package-download-transaction transaction)
+          (error                     ; refresh and retry if error
+           (package-refresh-contents)
+           (package-download-transaction transaction)))))
     (unless transaction
       (keg--princ)
       (keg--princ "All dependencies already satisfied"))))
