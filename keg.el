@@ -58,11 +58,12 @@
 
 (defun keg--princ (&optional str &rest args)
   "Do `princ' STR with format ARGS and put \n."
-  (when str (princ (if (stringp str)
-                       (replace-regexp-in-string
-                        "\\(\\`[\n\r]+\\)\\|\\([\n\r]+\\'\\)" ""
-                        (apply #'format str args))
-                     str)))
+  (when str
+    (princ (if (stringp str)
+               (replace-regexp-in-string
+                "\\(\\`[\n\r]+\\)\\|\\([\n\r]+\\'\\)" ""
+                (apply #'format str args))
+             str)))
   (princ "\n"))
 
 (defun keg--indent (width str)
