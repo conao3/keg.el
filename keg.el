@@ -73,20 +73,19 @@ If no found the Keg file, returns nil."
   (let ((path (keg-file-path))
         sources devs packages lint-disables)
     (when path
-      (dolist (elm (read (with-temp-buffer
-                           (insert-file-contents path)
-                           (format "(%s)" (buffer-string)))))
-        (let ((op (car elm))
-              (args (cdr elm)))
-          (cond
-           ((eq 'source op)
-            (dolist (elm args) (push elm sources)))
-           ((eq 'dev-dependency op)
-            (dolist (elm args) (push elm devs)))
-           ((eq 'package op)
-            (dolist (elm args) (push elm packages)))
-           ((eq 'disable-lint op)
-            (dolist (elm args) (push elm lint-disables))))))
+      (pcase-dolist (`(,op . ,args)
+                     (read (with-temp-buffer
+                             (insert-file-contents path)
+                             (format "(%s)" (buffer-string)))))
+        (cond
+         ((eq 'source op)
+          (dolist (elm args) (push elm sources)))
+         ((eq 'dev-dependency op)
+          (dolist (elm args) (push elm devs)))
+         ((eq 'package op)
+          (dolist (elm args) (push elm packages)))
+         ((eq 'disable-lint op)
+          (dolist (elm args) (push elm lint-disables)))))
       `((sources . ,(nreverse (delete-dups sources)))
         (devs . ,(nreverse (delete-dups devs)))
         (packages . ,(nreverse (delete-dups packages)))
@@ -204,11 +203,9 @@ Return value is below form:
   <req-ver> := STRING"
   (let* ((devs (keg-file-read-section 'devs))
          ret)
-    (dolist (package (keg-file-read-section 'packages))
-      (let* ((name (car package))
-             (_args (cdr package))
-             (main-file (format "%s.el" name)))
-        (push `(,name . ,(keg-build--get-package-requires main-file)) ret)))
+    (pcase-dolist (`(,pkg . ,_args) (keg-file-read-section 'packages))
+      (let ((main-file (format "%s.el" pkg)))
+        (push `(,pkg . ,(keg-build--get-package-requires main-file)) ret)))
     (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm "0.0.1")) devs)) ret)
     (nreverse ret)))
 
@@ -230,28 +227,26 @@ See `package-install'."
   (let ((package-archives (keg-build--package-archives))
         (reqs-info (keg-build-get-dependency))
         transaction)
-    (dolist (info reqs-info)
-      (let ((_name (car info))
-            (reqs (cdr info)))
-        (condition-case _err
-            (package-download-transaction
-             (setq transaction
-                   (package-compute-transaction
-                    nil
-                    (mapcar
-                     (lambda (elm)
-                       `(,(car elm) ,(version-to-list (cadr elm))))
-                     reqs))))
-          (error                     ; refresh and retry if error
-           (package-refresh-contents)
-           (package-download-transaction
-            (setq transaction
-                  (package-compute-transaction
-                   nil
-                   (mapcar
-                    (lambda (elm)
-                      `(,(car elm) ,(version-to-list (cadr elm))))
-                    reqs))))))))
+    (pcase-dolist (`(,_pkg . ,reqs) reqs-info)
+      (condition-case _err
+          (package-download-transaction
+           (setq transaction
+                 (package-compute-transaction
+                  nil
+                  (mapcar
+                   (lambda (elm)
+                     `(,(car elm) ,(version-to-list (cadr elm))))
+                   reqs))))
+        (error                     ; refresh and retry if error
+         (package-refresh-contents)
+         (package-download-transaction
+          (setq transaction
+                (package-compute-transaction
+                 nil
+                 (mapcar
+                  (lambda (elm)
+                    `(,(car elm) ,(version-to-list (cadr elm))))
+                  reqs)))))))
     (unless transaction
       (keg--princ)
       (keg--princ "All dependencies already satisfied"))))
@@ -300,11 +295,11 @@ See `package-install'."
       (unless (memq elm linters)
         (warn "Linter %s is disabled, but definition is missing" elm))
       (setq linters (delq elm linters)))
-    (dolist (info (if (not package)
-                      section
-                    (list (assoc package section))))
-      (let* ((name (car info))
-             (files (keg-elisp-files name)))
+    (pcase-dolist (`(,pkg . ,_reqs)
+                   (if (not package)
+                       section
+                     (list (assoc package section))))
+      (let ((files (keg-elisp-files pkg)))
         (unless linters
           (warn "All linter are disabled"))
         (setq keg-current-linters linters)
