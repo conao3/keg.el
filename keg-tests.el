@@ -71,19 +71,19 @@
 ;;  version
 ;;      Show ‘keg’ version."))))
 
-(defmacro cort-deftest-with-file-template (name form)
-  "Define test with NAME and FORM."
-  (declare (indent 1))
+(defmacro cort-deftest-with-file-template-op (op name form)
+  "Define test with OP NAME and FORM."
+  (declare (indent 2))
   (let* ((dir (format "%s.test"
                       (replace-regexp-in-string
                        "/" "--" (symbol-name name))))
          (abspath (expand-file-name dir)))
-    `(cort-deftest-generate :equal ,name
+    `(cort-deftest-generate ,op ,name
        ',(mapcar
           (lambda (elm)
             `((unwind-protect
                   (let ((default-directory ,abspath))
-                    (mkdir ,abspath)
+                    (mkdir ,abspath 'parent)
                     ,@(mapcan
                        (lambda (e)
                          (let ((d (file-name-directory (car e))))
@@ -99,13 +99,19 @@
               ,(caddr elm)))
           (eval form)))))
 
+(defmacro cort-deftest-with-file-template (name form)
+  "Define test with NAME and FORM."
+  (declare (indent 1))
+  `(cort-deftest-with-file-template-op :equal ,name
+     ,form))
+
 (cort-deftest-with-file-template keg/keg-file
   '(((("Keg"))
      (file-relative-name (keg-file-dir))
      "./")
 
     ((("Keg")
-      ("test/keg-file-test.el"))
+      ("test/keg-test.el"))
      (let ((default-directory (expand-file-name "test")))
        (file-relative-name (keg-file-dir)))
      "../")
@@ -120,6 +126,62 @@
        (let ((default-directory (expand-file-name "test")))
          (file-relative-name (keg-file-path))))
      "../Keg")))
+
+(cort-deftest-with-file-template keg/keg-file-read
+  '(((("Keg" . "(source gnu melpa)"))
+     (keg-file-read)
+     '((sources gnu melpa)
+       (devs)
+       (packages)
+       (disables)))
+
+    ((("Keg" . "(source gnu) (source melpa)"))
+     (keg-file-read)
+     '((sources gnu melpa)
+       (devs)
+       (packages)
+       (disables)))
+
+    ((("Keg" . "(package (keg))"))
+     (keg-file-read)
+     '((sources)
+       (devs)
+       (packages (keg))
+       (disables)))
+
+    ((("Keg" . "(package (keg (recipe . (keg :fetcher github :repo \"conao3/keg\"))))"))
+     (keg-file-read)
+     '((sources)
+       (devs)
+       (packages
+        (keg
+         (recipe . (keg :fetcher github :repo "conao3/keg"))))
+       (disables)))))
+
+(cort-deftest-with-file-template-op :string-match-p keg/keg-file-etc
+  '(((("Keg"))
+     (file-relative-name (keg-home-dir))
+     ".keg/[0-9]+\\.[0-9]+/")
+
+    ((("Keg")
+      ("test/keg-test.el"))
+     (let ((default-directory (expand-file-name "test")))
+       (file-relative-name (keg-home-dir)))
+     "../.keg/[0-9.]+/")
+
+    ((("Keg"))
+     (file-relative-name (keg-elpa-dir))
+     ".keg/[0-9]+\\.[0-9]+/elpa/")))
+
+(cort-deftest-with-file-template keg/get-dependency
+  '(((("keg.el" . ";; Package-Requires: ((emacs \"24.1\") (cl-lib \"0.6\"))"))
+     (keg-build--get-package-requires "keg.el")
+     '((emacs "24.1") (cl-lib "0.6")))
+
+    ((("Keg" . "(package (keg)) (dev-dependency cort)")
+      ("keg.el" . ";; Package-Requires: ((emacs \"24.1\") (cl-lib \"0.6\"))"))
+     (keg-build-get-dependency)
+     '((keg (emacs "24.1") (cl-lib "0.6")) (keg:devs (cort "0.0.1"))))))
 
 ;; (provide 'keg-tests)
 
