@@ -402,7 +402,9 @@ This function is `string-join' polifill for Emacs < 24.4."
 
 (defun keg-load-path ()
   "Return keg `load-path' same format as PATH."
-  (keg--string-join (mapcar #'shell-quote-argument load-path) ":"))
+  (case system-type
+    ((windows-nt) (keg--string-join load-path ";"))
+    (t (keg--string-join (mapcar #'shell-quote-argument load-path) ":"))))
 
 (defun keg-process-environment ()
   "Return `process-environment' for keg."
