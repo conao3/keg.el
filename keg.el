@@ -253,7 +253,7 @@ See `package-install'."
 
 ;;; Lint
 
-(defvar keg-linters '(package-lint byte-compile)
+(defvar keg-linters '(package-lint byte-compile checkdoc)
   "List of checkers.")
 
 (defvar keg-current-linters nil)
