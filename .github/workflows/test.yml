@@ -10,7 +10,7 @@ jobs:
     - uses: actions/checkout@v1
     - uses: purcell/setup-emacs@master
       with:
-        version: '26.3'
+        version: '27.1'
     - uses: conao3/setup-keg@master
     - name: Run lint
       run: 'make lint'
@@ -32,6 +32,7 @@ jobs:
           - '26.1'
           - '26.2'
           - '26.3'
+          - '27.1'
           - 'snapshot'
         include:
           - emacs_version: 'snapshot'
