@@ -353,17 +353,20 @@ See `package-install'."
   "Run `checkdoc' for files specified CLI arguments."
   (unless noninteractive
     (error "`keg-lint--checkdoc-batch' is to be used only with --batch"))
-  ;; Use eval not to use `lexical-let'
-  (cl-progv
-      '(success
-        checkdoc-create-error-function)
-      '(t
-        (lambda (&rest args)
-          (setq success nil)
-          (apply #'checkdoc--create-error-for-checkdoc args)))
-    (mapc
-     #'checkdoc-file
-     command-line-args-left)
+  (require 'checkdoc)
+  (cl-progv '(success) '(t)
+    (cl-letf (((symbol-function 'checkdoc-create-error)
+               `(lambda (text start end &optional unfixable)
+                  (setq success nil)
+                  (funcall ,(symbol-function 'checkdoc-create-error)
+                           text start end unfixable))))
+      (mapc
+       ;; Copied from `checkdoc-file'
+       (lambda (file)
+         (with-current-buffer (find-file-noselect file)
+           (let ((checkdoc-diagnostic-buffer "*warn*"))
+             (checkdoc-current-buffer t))))
+       command-line-args-left))
     (kill-emacs (if success 0 1))))
 
 
