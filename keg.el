@@ -354,7 +354,7 @@ See `package-install'."
   (unless noninteractive
     (error "`keg-lint--checkdoc-batch' is to be used only with --batch"))
   (require 'checkdoc)
-  (cl-progv '(success) '(t)
+  (cl-progv '(success checkdoc-diagnostic-buffer) '(t "*warn*")
     (cl-letf (((symbol-function 'checkdoc-create-error)
                `(lambda (text start end &optional unfixable)
                   (setq success nil)
@@ -364,8 +364,7 @@ See `package-install'."
        ;; Copied from `checkdoc-file'
        (lambda (file)
          (with-current-buffer (find-file-noselect file)
-           (let ((checkdoc-diagnostic-buffer "*warn*"))
-             (checkdoc-current-buffer t))))
+           (checkdoc-current-buffer t)))
        command-line-args-left))
     (kill-emacs (if success 0 1))))
 
