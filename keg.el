@@ -349,6 +349,22 @@ See `package-install'."
           (setq code pcode))))
     (kill-emacs code)))
 
+(defun keg-lint--checkdoc-batch ()
+  "Run `checkdoc' for files specified CLI arguments."
+  (unless noninteractive
+    (error "`keg-lint--checkdoc-batch' is to be used only with --batch"))
+  ;; Use eval not to use `lexical-let'
+  (eval
+   '(let ((success t)
+          (checkdoc-create-error-function
+           (lambda (&rest args)
+             (setq success nil)
+             (apply #'checkdoc--create-error-for-checkdoc args))))
+      (mapc
+       #'checkdoc-file
+       command-line-args-left)
+      (kill-emacs (if success 0 1)))))
+
 
 ;;; Functions
 
