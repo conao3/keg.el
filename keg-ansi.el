@@ -237,7 +237,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
     (format "\e[48;2;%sm%s\e[0m" code text)))
 
 (defmacro with-keg-ansi (&rest body)
-  "Exec BODY with keg-ansi DSL."
+  "Exec BODY with `keg-ansi' DSL."
   (let* ((exps (macroexpand-all
                 `(cl-macrolet
                      (,@(mapcar
