@@ -253,7 +253,7 @@ See `package-install'."
 
 ;;; Lint
 
-(defvar keg-linters '(package-lint byte-compile)
+(defvar keg-linters '(package-lint byte-compile checkdoc)
   "List of checkers.")
 
 (defvar keg-current-linters nil)
@@ -348,6 +348,25 @@ See `package-install'."
         (unless (= 0 pcode)
           (setq code pcode))))
     (kill-emacs code)))
+
+(defun keg-lint--checkdoc-batch ()
+  "Run `checkdoc' for files specified CLI arguments."
+  (unless noninteractive
+    (error "`keg-lint--checkdoc-batch' is to be used only with --batch"))
+  (require 'checkdoc)
+  (cl-progv '(success checkdoc-diagnostic-buffer) '(t "*warn*")
+    (cl-letf (((symbol-function 'checkdoc-create-error)
+               `(lambda (text start end &optional unfixable)
+                  (setq success nil)
+                  (funcall ,(symbol-function 'checkdoc-create-error)
+                           text start end unfixable))))
+      (mapc
+       ;; Copied from `checkdoc-file'
+       (lambda (file)
+         (with-current-buffer (find-file-noselect file)
+           (checkdoc-current-buffer t)))
+       command-line-args-left))
+    (kill-emacs (if success 0 1))))
 
 
 ;;; Functions
