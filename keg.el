@@ -464,7 +464,7 @@ This function is `string-join' polifill for Emacs < 24.4."
   "Return elisp files list associated with PACKAGE."
   (let ((main-file (format "%s.el" package))
         (res (sort (cl-remove-if
-                    (lambda (elm) (not (string-match ".el$" elm)))
+                    (lambda (elm) (not (string-match "\\.el$" elm)))
                     (keg-files package))
                    (lambda (a b)
                      (string<
