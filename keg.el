@@ -141,11 +141,12 @@ See `package-build-expand-file-specs' from MELPA package-build."
       (setq lst
             (if (consp entry)
                 (if (eq :exclude (car entry))
-                    (cl-nset-difference lst
-                                        (keg-build--expand-file-specs
-                                         dir (cdr entry) nil t)
-                                        :key 'car
-                                        :test 'equal)
+                    (delq nil
+                          (let ((alist (keg-build--expand-file-specs
+                                        dir (cdr entry) nil t)))
+                            (mapcar
+                             (lambda (elt) (unless (assoc (car elt) alist) elt))
+                             lst)))
                   (nconc lst
                          (keg-build--expand-file-specs
                           dir
