@@ -163,6 +163,26 @@ See https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences")
 
 
 
+(defmacro keg-ansi--cl-macrolet (bindings &rest body)
+  "Make temporary macro definitions.
+This is like `cl-flet', but for macros instead of functions.
+
+see `cl-macrolet' for BINDINGS, BODY info.
+
+\(fn ((NAME ARGLIST BODY...) ...) FORM...)"
+  (declare (indent 1)
+           (debug (cl-macrolet-expr)))
+  (if (cdr bindings)
+      `(keg-ansi--cl-macrolet (,(car bindings)) (keg-ansi--cl-macrolet ,(cdr bindings) ,@body))
+    (if (null bindings) (macroexp-progn body)
+      (let* ((name (caar bindings))
+	     (res (cl--transform-lambda (cdar bindings) name)))
+	(eval (car res))
+	(macroexpand-all (macroexp-progn body)
+			 (cons (cons name
+                                     (eval `(cl-function (lambda ,@(cdr res))) t))
+			       macroexpand-all-environment))))))
+
 (defun keg-ansi--alist-get (key alist &optional default)
   "Find the first element of ALIST whose `car' equals KEY and return its `cdr'.
 If KEY is not found in ALIST, return DEFAULT.
@@ -239,7 +259,7 @@ FORMAT-STRING and OBJECTS are processed same as `apply'."
 (defmacro with-keg-ansi (&rest body)
   "Exec BODY with `keg-ansi' DSL."
   (let* ((exps (macroexpand-all
-                `(cl-macrolet
+                `(keg-ansi--cl-macrolet
                      (,@(mapcar
                          (lambda (name)
                            `(,name (format-string &rest args)
