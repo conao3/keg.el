@@ -137,11 +137,12 @@ See `package-build-expand-file-specs' from MELPA package-build."
       (setq lst
             (if (consp entry)
                 (if (eq :exclude (car entry))
-                    (cl-nset-difference lst
-                                        (keg-build--expand-file-specs
-                                         dir (cdr entry) nil t)
-                                        :key 'car
-                                        :test 'equal)
+                    (delq nil
+                          (let ((alist (keg-build--expand-file-specs
+                                        dir (cdr entry) nil t)))
+                            (mapcar
+                             (lambda (elt) (unless (assoc (car elt) alist) elt))
+                             lst)))
                   (nconc lst
                          (keg-build--expand-file-specs
                           dir
@@ -460,9 +461,10 @@ This function is `string-join' polifill for Emacs < 24.4."
 (defun keg-elisp-files (&optional package)
   "Return elisp files list associated with PACKAGE."
   (let ((main-file (format "%s.el" package))
-        (res (sort (cl-remove-if
-                    (lambda (elm) (not (string-match "\\.el$" elm)))
-                    (keg-files package))
+        (res (sort (delq nil
+                         (mapcar
+                          (lambda (file) (string-match "\\.el$" file) file)
+                          (keg-files package)))
                    (lambda (a b)
                      (string<
                       (substring a 0 -3)
