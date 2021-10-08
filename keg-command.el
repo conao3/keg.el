@@ -324,7 +324,6 @@ USAGE: keg debug"
   "Init `keg' and exec subcommand."
   (unless noninteractive
     (error "`keg-command' is to be used only with --batch"))
-  (keg-initialize)
   (let* ((opraw (car command-line-args-left))
          (op (when opraw (intern opraw)))
          (args (cdr command-line-args-left)))
@@ -353,6 +352,8 @@ USAGE: keg debug"
      ((null op)
       (keg-command-install))
      ((memq op (keg-subcommands))
+      (when (not (memq op keg-global-commands))
+        (keg-initialize))
       (apply (intern (format "keg-command-%s" (symbol-name op))) args))
      (t
       (keg-command-help)
