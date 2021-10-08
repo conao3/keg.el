@@ -30,10 +30,6 @@
 
 (defvar keg-directory)
 
-(defsubst keg-command--string-join (strings &optional separator)
-  "Join all STRINGS using SEPARATOR."
-  (mapconcat 'identity strings separator))
-
 (defun keg--argument-count-check (num-min num-max subcommand args)
   "Check number of ARGS range NUM-MIN to NUM-MAX in SUBCOMMAND.
 Meaning of -1 is no restriction."
@@ -174,7 +170,7 @@ USAGE: keg eval [SEXP]"
   (keg--argument-count-check -1 -1 'eval args) ; sexp is separated
   (when args
     (keg-command-exec "emacs" "--batch"
-                      (format "--eval=\"%s\"" (keg-command--string-join args " ")))))
+                      (format "--eval=\"%s\"" (keg--string-join args " ")))))
 
 (defun keg-command-lint (&rest args)
   "Exec linters for PACKAGE.
