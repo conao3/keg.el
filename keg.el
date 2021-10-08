@@ -55,6 +55,10 @@
   "Alist for symbol to ELPA url.")
 
 
+
+(defvar checkdoc-diagnostic-buffer)
+
+
 ;;; Keg file
 
 (defun keg-file-dir ()
