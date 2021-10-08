@@ -323,6 +323,8 @@ USAGE: keg debug"
   (let* ((opraw (car command-line-args-left))
          (op (when opraw (intern opraw)))
          (args (cdr command-line-args-left)))
+    (when (not (memq op keg-global-commands))
+        (keg-initialize))
     (cond
      ((and
        (memq op keg-global-commands)
@@ -348,8 +350,6 @@ USAGE: keg debug"
      ((null op)
       (keg-command-install))
      ((memq op (keg-subcommands))
-      (when (not (memq op keg-global-commands))
-        (keg-initialize))
       (apply (intern (format "keg-command-%s" (symbol-name op))) args))
      (t
       (keg-command-help)
