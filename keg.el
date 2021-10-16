@@ -181,12 +181,14 @@ See `package-build--config-file-list' from MELPA package-build."
 (defun keg-build--expand-source-file-list (&optional recipe dir)
   "Resolve source file from RECIPE in DIR.
 See `package-build--expand-source-file-list' from MELPA package-build."
-  (cl-remove-if-not
-   (lambda (elm) (string-match-p "\\.el$" elm))
-   (mapcar #'car
-           (keg-build--expand-file-specs
-            (or dir default-directory)
-            (keg-build--config-file-list recipe)))))
+  (delq nil
+        (mapcar
+         (lambda (elm)
+           (when (string-match-p "\\.el$" elm) elm))
+         (mapcar #'car
+                 (keg-build--expand-file-specs
+                  (or dir default-directory)
+                  (keg-build--config-file-list recipe))))))
 
 (defun keg-build--get-dependency-from-elisp-file (file)
   "Get package dependency from Package-Require header from FILE.
