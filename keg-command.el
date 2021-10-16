@@ -68,7 +68,6 @@ ARGS is CLI arguments.
 
 USAGE: keg help"
   (keg--argument-count-check 0 0 'help args)
-  (keg--princ "hello")
   (keg--princ
    "USAGE: keg [SUBCOMMAND] [OPTIONS...]
 
