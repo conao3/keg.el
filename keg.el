@@ -54,7 +54,7 @@
     (celpa . "https://celpa.conao3.com/packages/"))
   "Alist for symbol to ELPA url.")
 
-(defvar keg-version "0.0.1"
+(defconst keg-version (lm-version (expand-file-name "keg.el" keg-directory))
   "Keg version.")
 
 
