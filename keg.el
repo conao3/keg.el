@@ -467,7 +467,7 @@ This function is `string-join' polifill for Emacs < 24.4."
   (let ((main-file (format "%s.el" package))
         (res (sort (delq nil
                          (mapcar
-                          (lambda (file) (string-match "\\.el$" file) file)
+                          (lambda (file) (when (string-match "\\.el$" file) file))
                           (keg-files package)))
                    (lambda (a b)
                      (string<
