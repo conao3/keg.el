@@ -176,8 +176,7 @@ This is like `cl-flet', but for macros instead of functions.
 see `cl-macrolet' for BINDINGS, BODY info.
 
 \(fn ((NAME ARGLIST BODY...) ...) FORM...)"
-  (declare (indent 1)
-           (debug (cl-macrolet-expr)))
+  (declare (indent 1))
   (if (cdr bindings)
       `(keg-ansi--cl-macrolet (,(car bindings)) (keg-ansi--cl-macrolet ,(cdr bindings) ,@body))
     (if (null bindings) (keg-ansi--macroexp-progn body)
