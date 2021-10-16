@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
-
 (defgroup keg-ansi nil
   "Utility for ANSI terminal escape codes."
   :group 'convenience
@@ -163,6 +161,14 @@ See https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences")
 
 
 
+(defun keg-ansi--macroexp-progn (exps)
+  "Return EXPS (a list of expressions) with `progn' prepended.
+If EXPS is a list with a single expression, `progn' is not
+prepended, but that expression is returned instead.
+
+Copied from `macroexp-progn'."
+  (if (cdr exps) `(progn ,@exps) (car exps)))
+
 (defmacro keg-ansi--cl-macrolet (bindings &rest body)
   "Make temporary macro definitions.
 This is like `cl-flet', but for macros instead of functions.
@@ -174,14 +180,16 @@ see `cl-macrolet' for BINDINGS, BODY info.
            (debug (cl-macrolet-expr)))
   (if (cdr bindings)
       `(keg-ansi--cl-macrolet (,(car bindings)) (keg-ansi--cl-macrolet ,(cdr bindings) ,@body))
-    (if (null bindings) (macroexp-progn body)
+    (if (null bindings) (keg-ansi--macroexp-progn body)
       (let* ((name (caar bindings))
-	     (res (cl--transform-lambda (cdar bindings) name)))
-	(eval (car res))
-	(macroexpand-all (macroexp-progn body)
-			 (cons (cons name
-                                     (eval `(cl-function (lambda ,@(cdr res))) t))
-			       macroexpand-all-environment))))))
+             (args (cadar bindings))
+             (macrobody (cddar bindings))
+             (res `(nil ,args ,@macrobody)))
+        (eval (car res))
+        (macroexpand-all (keg-ansi--macroexp-progn body)
+                         (cons (cons name
+                                     (eval `(lambda ,@(cdr res)) t))
+                               macroexpand-all-environment))))))
 
 (defun keg-ansi--alist-get (key alist &optional default)
   "Find the first element of ALIST whose `car' equals KEY and return its `cdr'.
