@@ -28,7 +28,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'lisp-mnt)
 (require 'package)
 (require 'keg-command)
