@@ -28,6 +28,14 @@
 (require 'cort)
 (require 'keg)
 
+(defsubst keg-tests--string-trim-right (string &optional regexp)
+  "Trim STRING of trailing string matching REGEXP.
+
+REGEXP defaults to  \"[ \\t\\n\\r]+\"."
+  (let ((i (string-match-p (concat "\\(?:" (or regexp "[ \t\n\r]+") "\\)\\'")
+                           string)))
+    (if i (substring string 0 i) string)))
+
 (defmacro cort-deftest-with-shell-command (name form)
   "Return `cort-deftest' compare with `string=' for NAME, FORM.
 
@@ -49,12 +57,12 @@
      ',(mapcar (lambda (elm)
                  `(:string=
                    ,(cadr elm)
-                   (string-trim-right (shell-command-to-string ,(car elm)))))
+                   (keg-tests--string-trim-right (shell-command-to-string ,(car elm)))))
                (cadr form))))
 
 (cort-deftest-with-shell-command keg/subcommand-simple
   '(("keg version"
-     "Keg 0.0.1 running on Emacs 26.3")
+     (concat "Keg " keg-version " running on Emacs " emacs-version))
     ("keg help"
      "USAGE: keg [SUBCOMMAND] [OPTIONS...]
 
