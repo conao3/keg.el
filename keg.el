@@ -54,6 +54,9 @@
     (celpa . "https://celpa.conao3.com/packages/"))
   "Alist for symbol to ELPA url.")
 
+(defvar keg-version "0.0.1"
+  "Keg version.")
+
 
 
 (defvar checkdoc-diagnostic-buffer)
@@ -221,7 +224,7 @@ Return value is below form:
              (_args (cdr package))
              (main-file (format "%s.el" name)))
         (push `(,name . ,(keg-build--get-dependency-from-elisp-file main-file)) ret)))
-    (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm ,(version-to-list "0.0.1"))) devs)) ret)
+    (push `(keg--devs . ,(mapcar (lambda (elm) `(,elm ,(version-to-list keg-version))) devs)) ret)
     (nreverse ret)))
 
 (defun keg-build--package-archives (&optional syms)
