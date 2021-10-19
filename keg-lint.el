@@ -35,6 +35,9 @@
   (unless noninteractive
     (error "`keg-lint--package-lint-batch' is to be used only with --batch"))
 
+  (setq package-user-dir (or (getenv "KEGLINTPACKAGEUSERDIR") package-user-dir))
+  (setq package-archives (or (read (getenv "KEGLINTPACKAGEARCHIVES")) package-archives))
+  (package-initialize)
   (prog1 'package-lint
     (require 'package-lint)
     (defvar package-lint-main-file)

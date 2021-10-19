@@ -375,7 +375,10 @@ This function is `string-join' polifill for Emacs < 24.4."
 
 (defun keg-process-environment ()
   "Return `process-environment' for keg."
-  (cons (format "EMACSLOADPATH=%s" (keg-load-path)) process-environment))
+  (append (list (format "EMACSLOADPATH=%s" (keg-load-path))
+                (format "KEGLINTPACKAGEUSERDIR=%s" (keg-elpa-dir))
+                (format "KEGLINTPACKAGEARCHIVES=%S" (keg-build--package-archives)))
+          process-environment))
 
 (defun keg-start-process (&rest command)
   "Exec COMMAND and return process object."
