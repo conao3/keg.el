@@ -26,6 +26,10 @@
 
 (declare-function package-lint-batch-and-exit-1 "ext:package-lint")
 
+(defvar package-archives)
+
+(defvar checkdoc-diagnostic-buffer)
+
 (defun keg-lint--package-lint-batch ()
   "Run `package-lint' for files specified CLI arguments."
   (unless noninteractive
