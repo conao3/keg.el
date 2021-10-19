@@ -61,9 +61,9 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
                (cadr form))))
 
 (cort-deftest-with-shell-command keg/subcommand-simple
-  '(("keg version"
+  '(("./bin/keg version"
      (concat "Keg " keg-version " running on Emacs " emacs-version))
-    ("keg help"
+    ("./bin/keg help"
      "USAGE: keg [SUBCOMMAND] [OPTIONS...]
 
 Modern Elisp package development system.
