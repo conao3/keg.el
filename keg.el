@@ -60,10 +60,6 @@
   "Keg version.")
 
 
-
-(defvar checkdoc-diagnostic-buffer)
-
-
 ;;; Keg file
 
 (defun keg-file-dir ()
