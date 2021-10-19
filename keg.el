@@ -5,7 +5,7 @@
 ;; Author: Naoya Yamashita <conao3@gmail.com>
 ;; Version: 0.0.1
 ;; Keywords: convenience
-;; Package-Requires: ((emacs "24.1") (cl-lib "0.6"))
+;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://github.com/conao3/keg.el
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'lisp-mnt)
 (require 'package)
 (require 'keg-command)
@@ -143,11 +142,12 @@ See `package-build-expand-file-specs' from MELPA package-build."
       (setq lst
             (if (consp entry)
                 (if (eq :exclude (car entry))
-                    (cl-nset-difference lst
-                                        (keg-build--expand-file-specs
-                                         dir (cdr entry) nil t)
-                                        :key 'car
-                                        :test 'equal)
+                    (delq nil
+                          (let ((alist (keg-build--expand-file-specs
+                                        dir (cdr entry) nil t)))
+                            (mapcar
+                             (lambda (elt) (unless (assoc (car elt) alist) elt))
+                             lst)))
                   (nconc lst
                          (keg-build--expand-file-specs
                           dir
@@ -182,12 +182,14 @@ See `package-build--config-file-list' from MELPA package-build."
 (defun keg-build--expand-source-file-list (&optional recipe dir)
   "Resolve source file from RECIPE in DIR.
 See `package-build--expand-source-file-list' from MELPA package-build."
-  (cl-remove-if-not
-   (lambda (elm) (string-match-p "\\.el$" elm))
-   (mapcar #'car
-           (keg-build--expand-file-specs
-            (or dir default-directory)
-            (keg-build--config-file-list recipe)))))
+  (delq nil
+        (mapcar
+         (lambda (elm)
+           (when (string-match-p "\\.el$" elm) elm))
+         (mapcar #'car
+                 (keg-build--expand-file-specs
+                  (or dir default-directory)
+                  (keg-build--config-file-list recipe))))))
 
 (defun keg-build--get-dependency-from-elisp-file (file)
   "Get package dependency from Package-Require header from FILE.
@@ -414,9 +416,10 @@ This function is `string-join' polifill for Emacs < 24.4."
 (defun keg-elisp-files (&optional package)
   "Return elisp files list associated with PACKAGE."
   (let ((main-file (format "%s.el" package))
-        (res (sort (cl-remove-if
-                    (lambda (elm) (not (string-match "\\.el$" elm)))
-                    (keg-files package))
+        (res (sort (delq nil
+                         (mapcar
+                          (lambda (file) (when (string-match "\\.el$" file) file))
+                          (keg-files package)))
                    (lambda (a b)
                      (string<
                       (substring a 0 -3)

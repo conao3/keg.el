@@ -102,6 +102,73 @@ SUBCOMMANDS:
  version
      Show ‘keg’ version.")))
 
+(cort-deftest-generate keg/ansi-cl-macrolet :macroexpand
+  '(
+    ;; With 1 argument
+    ((keg-ansi--cl-macrolet
+         ((macro-1-arg (arg1) `(let ((x 1)) ,arg1)))
+       (macro-1-arg x))
+     (let ((x 1)) x))
+    ((keg-ansi--cl-macrolet
+         ((macro-1-arg (arg1) (message "Expand") `(let ((x 1)) ,arg1)))
+       (macro-1-arg x))
+     (let ((x 1)) x))
+
+    ;;With &rest arguments
+    ((keg-ansi--cl-macrolet
+         ((macro-&rest-args (arg1 &rest args) `(let ((x 1)) ,arg1 ,@args)))
+       (macro-&rest-args x 1 (2 3) 4))
+     (let ((x 1)) x 1 (2 3) 4))
+    ((keg-ansi--cl-macrolet
+         ((macro-&rest-args (arg1 &rest args) (message "Expand") `(let ((x 1)) ,arg1 ,@args)))
+       (macro-&rest-args x 1 (2 3) 4))
+     (let ((x 1)) x 1 (2 3) 4))
+    ((keg-ansi--cl-macrolet
+         ((macro-&rest-args (arg1 &rest args) `(let ((x 1)) ,arg1 ,@args)))
+       (macro-&rest-args x [1] (2 3) 4))
+     (let ((x 1)) x [1] (2 3) 4))
+    ((keg-ansi--cl-macrolet
+         ((macro-&rest-args (arg1 &rest args) (message "Expand") `(let ((x 1)) ,arg1 ,@args)))
+       (macro-&rest-args x [1] (2 3) 4))
+     (let ((x 1)) x [1] (2 3) 4))
+
+    ;; With 1 &optional argument
+    ((keg-ansi--cl-macrolet
+         ((macro-1-optional-arg (arg1 &optional arg2) `(let ((x 1)) ,arg1 ,arg2)))
+       (macro-1-optional-arg x))
+     (let ((x 1)) x nil))
+    ((keg-ansi--cl-macrolet
+         ((macro-1-optional-arg (arg1 &optional arg2) `(let ((x 1)) ,arg1 ,arg2)))
+       (macro-1-optional-arg x 1))
+     (let ((x 1)) x 1))
+
+    ;; With 2 &optional arguments
+    ((keg-ansi--cl-macrolet
+         ((macro-2-optional-args (arg1 &optional arg2 arg3) `(let ((x 1)) ,arg1 ,arg2 ,arg3)))
+       (macro-2-optional-args x))
+     (let ((x 1)) x nil nil))
+    ((keg-ansi--cl-macrolet
+         ((macro-2-optional-args (arg1 &optional arg2 arg3) `(let ((x 1)) ,arg1 ,arg2 ,arg3)))
+       (macro-2-optional-args x 2))
+     (let ((x 1)) x 2 nil))
+    ((keg-ansi--cl-macrolet
+         ((macro-2-optional-args (arg1 &optional arg2 arg3) `(let ((x 1)) ,arg1 ,arg2 ,arg3)))
+       (macro-2-optional-args x 2 3))
+     (let ((x 1)) x 2 3))
+
+    ;; With multiple bindings
+    ((keg-ansi--cl-macrolet
+         ((macro-1-arg (arg1) `(let ((x 1)) ,arg1))
+          (macro-&rest-args (arg1 &rest args) `(let ((x 1)) ,arg1 ,@args)))
+       (macro-1-arg x)
+       (macro-&rest-args x))
+     (keg-ansi--cl-macrolet
+         ((macro-1-arg (arg1) `(let ((x 1)) ,arg1)))
+       (keg-ansi--cl-macrolet
+           ((macro-&rest-args (arg1 &rest args) `(let ((x 1)) ,arg1 ,@args)))
+         (macro-1-arg x)
+         (macro-&rest-args x))))))
+
 ;; (provide 'keg-tests)
 
 ;; Local Variables:
