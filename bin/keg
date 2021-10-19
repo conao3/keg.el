@@ -22,6 +22,9 @@
 (when (string= "--" (car command-line-args-left))
   (pop command-line-args-left))
 
-(add-to-list 'load-path (expand-file-name "../" (file-name-directory load-file-name)))
-(require 'keg)
+;; Prevent `load-path' from including ".keg" directory when running `keg-command'.
+(let ((load-path load-path))
+  (add-to-list 'load-path (expand-file-name "../" (file-name-directory load-file-name)))
+  (require 'keg))
+
 (keg-command)
