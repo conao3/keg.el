@@ -30,6 +30,8 @@
 
 (defvar keg-directory)
 
+(defvar keg-version)
+
 (defun keg--argument-count-check (num-min num-max subcommand args)
   "Check number of ARGS range NUM-MIN to NUM-MAX in SUBCOMMAND.
 Meaning of -1 is no restriction."
@@ -88,7 +90,7 @@ USAGE: keg version"
   (keg--argument-count-check 0 0 'version args)
   (keg--princ
    (format "Keg %s running on Emacs %s"
-           (lm-version (expand-file-name "keg.el" keg-directory))
+           keg-version
            emacs-version)))
 
 (defun keg-command-init (&rest args)

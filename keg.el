@@ -42,9 +42,9 @@
 (defconst keg-directory
   (eval-when-compile
     (expand-file-name
-     (file-name-directory (or load-file-name
-                              buffer-file-name
-                              byte-compile-current-file))))
+     (file-name-directory (or byte-compile-current-file
+                              load-file-name
+                              buffer-file-name))))
   "Path to keg root.")
 
 (defvar keg-archives
@@ -54,7 +54,9 @@
     (celpa . "https://celpa.conao3.com/packages/"))
   "Alist for symbol to ELPA url.")
 
-(defvar keg-version "0.0.1"
+(defvar keg-version
+  (eval-when-compile
+    (lm-version (expand-file-name "keg.el" keg-directory)))
   "Keg version.")
 
 
