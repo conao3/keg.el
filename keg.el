@@ -277,7 +277,8 @@ See `package-install'."
     (when linter
       (let* ((fn (intern (format "keg-lint--%s-batch" linter)))
              (command `("emacs" "--batch"
-                        "--eval=\"(require 'keg)\""
+                        "-l"
+                        ,(expand-file-name "keg-lint.el" keg-directory)
                         ,(format "--funcall=%s" fn)
                         ,@files))
              (proc (keg-start-process (keg--string-join command " "))))
@@ -317,62 +318,6 @@ See `package-install'."
           (unless (= 0 pcode)
             (setq code pcode)))))
     code))
-
-(declare-function package-lint-batch-and-exit-1 "ext:package-lint")
-
-(defun keg-lint--package-lint-batch ()
-  "Run `package-lint' for files specified CLI arguments."
-  (unless noninteractive
-    (error "`keg-lint--package-lint-batch' is to be used only with --batch"))
-
-  (prog1 'package
-    (setq package-archives (keg-build--package-archives '(melpa gnu)))
-    (keg-initialize))
-
-  (prog1 'package-lint
-    (require 'package-lint)
-    (defvar package-lint-main-file)
-    (setq package-lint-main-file (when (< 1 (length command-line-args-left))
-                                   (car command-line-args-left))))
-
-  (let ((success (package-lint-batch-and-exit-1 command-line-args-left)))
-    (kill-emacs (if success 0 1))))
-
-(defun keg-lint--byte-compile-batch ()
-  "Run `byte-compile-file' for files specified CLI arguments."
-  (unless noninteractive
-    (error "`keg-lint--byte-compile-batch' is to be used only with --batch"))
-
-  (keg-initialize)
-  (let ((code 0))
-    (dolist (file command-line-args-left)
-      (let (pcode)
-        (ignore-errors (kill-buffer "*Compile-Log*"))
-        (byte-compile-file file)
-        (with-current-buffer (get-buffer-create "*Compile-Log*")
-          (if (<= (- (point-max) (point)) 3)
-              (setq pcode 0)
-            (goto-char (point-min)) (forward-line 2)
-            (replace-regexp-in-string "\\(^[\n]+\\)\\|\\([\n]+$\\)" ""
-                                      (buffer-substring (point) (point-max)))
-            (setq pcode 1)))
-        (unless (= 0 pcode)
-          (setq code pcode))))
-    (kill-emacs code)))
-
-(defun keg-lint--checkdoc-batch ()
-  "Run `checkdoc' for files specified CLI arguments."
-  (unless noninteractive
-    (error "`keg-lint--checkdoc-batch' is to be used only with --batch"))
-  (require 'checkdoc)
-  (let ((checkdoc-diagnostic-buffer "*warn*"))
-    (mapc
-     ;; Copied from `checkdoc-file'
-     (lambda (file)
-       (with-current-buffer (find-file-noselect file)
-         (checkdoc-current-buffer t)))
-     command-line-args-left)
-    (kill-emacs (if (get-buffer "*Warnings*") 1 0))))
 
 
 ;;; Functions
