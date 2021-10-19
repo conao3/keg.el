@@ -42,9 +42,9 @@
 (defconst keg-directory
   (eval-when-compile
     (expand-file-name
-     (file-name-directory (or load-file-name
-                              buffer-file-name
-                              byte-compile-current-file))))
+     (file-name-directory (or byte-compile-current-file
+                              load-file-name
+                              buffer-file-name))))
   "Path to keg root.")
 
 (defvar keg-archives
