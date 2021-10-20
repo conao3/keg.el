@@ -55,11 +55,11 @@ jobs:
       run: 'make test-keg'
 
     - name: Run tests of keg-mode
-      if: matrix.allow_failure != true && only_keg != true
+      if: matrix.allow_failure != true && matrix.only_keg != true
       run: 'make test-keg-mode'
 
     - name: Run tests of flycheck-keg
-      if: matrix.allow_failure != true && only_keg != true
+      if: matrix.allow_failure != true && matrix.only_keg != true
       run: 'make test-flycheck-keg'
 
     - name: Run tests (allow failure)
