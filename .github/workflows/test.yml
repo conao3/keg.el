@@ -37,6 +37,12 @@ jobs:
         include:
           - emacs_version: 'snapshot'
             allow_failure: true
+          - emacs_version: '24.1'
+            only_keg: true
+          - emacs_version: '24.2'
+            only_keg: true
+          - emacs_version: '24.3'
+            only_keg: true
     steps:
     - uses: actions/checkout@v1
     - uses: purcell/setup-emacs@master
@@ -44,9 +50,17 @@ jobs:
         version: ${{ matrix.emacs_version }}
     - uses: conao3/setup-keg@master
 
-    - name: Run tests
+    - name: Run tests of keg
       if: matrix.allow_failure != true
-      run: 'make test'
+      run: 'make test-keg'
+
+    - name: Run tests of keg-mode
+      if: matrix.allow_failure != true && only_keg != true
+      run: 'make test-keg-mode'
+
+    - name: Run tests of flycheck-keg
+      if: matrix.allow_failure != true && only_keg != true
+      run: 'make test-flycheck-keg'
 
     - name: Run tests (allow failure)
       if: matrix.allow_failure == true
