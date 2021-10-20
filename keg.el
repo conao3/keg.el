@@ -51,6 +51,7 @@
   '((gnu . "https://elpa.gnu.org/packages/")
     (org . "https://orgmode.org/elpa/")
     (melpa . "https://melpa.org/packages/")
+    (nongnu . "https://elpa.nongnu.org/nongnu/")
     (celpa . "https://celpa.conao3.com/packages/"))
   "Alist for symbol to ELPA url.")
 
