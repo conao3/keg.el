@@ -112,7 +112,7 @@ USAGE: keg init"
   (keg--princ "Successful creating Keg file"))
 
 (defun keg-command-install (&rest args)
-  "Install PACKAGE dependencies in .keg sandbox folder.
+  "Install PACKAGES dependencies in .keg sandbox folder.
 ARGS is CLI argument.
 
 USAGE: keg install [PACKAGES...]"
