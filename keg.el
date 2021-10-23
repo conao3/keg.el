@@ -242,7 +242,7 @@ See `keg-archives' for symbol url mapping."
    (or syms (keg-file-read-section 'sources))))
 
 (defun keg-build--resolve-dependency (packages)
-  "Fetch dependency in .keg folder.
+  "Fetch dependency of PACKAGES in .keg folder.
 See `package-install'."
   (let ((packages (append packages '(keg--devs)))
         (package-archives (keg-build--package-archives))
