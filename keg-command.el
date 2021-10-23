@@ -115,30 +115,36 @@ USAGE: keg init"
   "Install PACKAGE dependencies in .keg sandbox folder.
 ARGS is CLI argument.
 
-USAGE: keg install [PACKAGE]"
-  (keg--argument-count-check -1 1 'install args)
+USAGE: keg install [PACKAGES...]"
+  (keg--argument-count-check -1 -1 'install args)
   (keg--princ "Install dependencies")
-  (let ((reqinfo (keg-build--get-dependency-from-keg-file)))
+  (let ((reqinfo (keg-build--get-dependency-from-keg-file))
+        (packages (cond
+                   (args (mapcar #'keg--argument-package-check args))
+                   ((getenv "KEGINSTALLPACKAGES")
+                    (mapcar #'keg--argument-package-check (split-string (getenv "KEGINSTALLPACKAGES"))))
+                   (t (keg-packages)))))
     (dolist (info (keg-file-read-section 'packages))
       (let* ((name (car info))
              (_alist (cdr info))
              (reqs (keg--alist-get name reqinfo)))
-        (keg--princ (format " Package: %s" name))
-        (keg--princ (format "     Dependency: %s"
-                            (mapcar
-                             (lambda (elm)
-                               (let ((pkg (car elm))
-                                     (ver (cadr elm)))
-                                 `(,pkg ,(package-version-join ver))))
-                             reqs)))))
+        (when (memq name packages)
+          (keg--princ (format " Package: %s" name))
+          (keg--princ (format "     Dependency: %s"
+                              (mapcar
+                               (lambda (elm)
+                                 (let ((pkg (car elm))
+                                       (ver (cadr elm)))
+                                   `(,pkg ,(package-version-join ver))))
+                               reqs))))))
     (keg--princ (format " DevDependency: %s"
                         (mapcar
                          (lambda (elm)
                            (let ((pkg (car elm))
                                  (ver (cadr elm)))
                              `(,pkg ,(package-version-join ver))))
-                         (keg--alist-get 'keg--devs reqinfo)))))
-  (keg-build--resolve-dependency))
+                         (keg--alist-get 'keg--devs reqinfo))))
+    (keg-build--resolve-dependency packages)))
 
 (defun keg-command-exec (&rest args)
   "Exec COMMAND with appropriate environment variables.
@@ -344,6 +350,9 @@ USAGE: keg debug"
        (not (memq op keg-no-install-commands))
        (not (file-directory-p user-emacs-directory)))
       (keg--princ "As missing .keg sandbox, install dependencies")
+      (make-directory user-emacs-directory 'parent)
+      (keg-command-install))
+     ((not (memq op keg-no-install-commands))
       (make-directory user-emacs-directory 'parent)
       (keg-command-install)))
 
