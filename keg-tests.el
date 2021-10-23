@@ -93,8 +93,8 @@ SUBCOMMANDS:
      Show PACKAGE information.
  init
      Create Keg template file.
- install [PACKAGE]
-     Install PACKAGE dependencies in .keg sandbox folder.
+ install [PACKAGES...]
+     Install PACKAGES dependencies in .keg sandbox folder.
  lint [PACKAGE]
      Exec linters for PACKAGE.
  load-path
