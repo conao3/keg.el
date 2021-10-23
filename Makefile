@@ -32,9 +32,17 @@ help:
 
 ##############################
 
-test: build
-	keg build
-	keg exec $(EMACS) --batch -l $(PACKAGE_NAME)-tests.el -f cort-test-run
+test: test-keg test-keg-mode test-flycheck-keg
+
+test-keg:
+	KEGINSTALLPACKAGES="keg" keg build keg
+	KEGINSTALLPACKAGES="keg" keg exec $(EMACS) --batch -l $(PACKAGE_NAME)-tests.el -f cort-test-run
+
+test-keg-mode:
+	KEGINSTALLPACKAGES="keg-mode" keg build keg-mode
+
+test-flycheck-keg:
+	KEGINSTALLPACKAGES="flycheck-keg" keg build flycheck-keg
 
 lint:
 	keg lint
