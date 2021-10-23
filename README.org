@@ -229,11 +229,12 @@ Create =Keg= file in current directory.
 
 *** install
 #+begin_src shell
-  keg install [PACKAGE]
+  keg install [PACKAGES...]
 #+end_src
 Install dependencies in =.keg= sandbox.
 
-If package specified, only install associated with it.
+If package specified, only install associated with it. You can also use environmental variables named =KEGINSTALLPACKAGES=
+as =PACKAGES= specification. It is also valid on the other subcommands which cause installation.
 
 *** lint
 #+begin_src shell

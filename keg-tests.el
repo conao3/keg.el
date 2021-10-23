@@ -54,53 +54,37 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
                     (shell-command-to-string \"keg files\")))))"
 (declare (indent 1))
   `(cort-deftest ,name
-     ',(mapcar (lambda (elm)
-                 `(:string=
-                   ,(cadr elm)
-                   (keg-tests--string-trim-right (shell-command-to-string ,(car elm)))))
-               (cadr form))))
+     ',(apply #'nconc
+              (mapcar (lambda (elm)
+                        (mapcar
+                         (lambda (regexp)
+                           `(:string-match-p
+                             ,regexp
+                             (keg-tests--string-trim-right (shell-command-to-string ,(car elm)))))
+                         (cdr elm)))
+                      (cadr form)))))
 
 (cort-deftest-with-shell-command keg/subcommand-simple
   '(("./bin/keg version"
-     (concat "Keg " keg-version " running on Emacs " emacs-version))
+     "Keg [0-9.]+ running on Emacs [0-9.]+")
     ("./bin/keg help"
-     "USAGE: keg [SUBCOMMAND] [OPTIONS...]
-
-Modern Elisp package development system.
-
-SUBCOMMANDS:
- build [PACKAGE]
-     Byte compile for PACKAGE.
- clean
-     Clean ‘.elc’ files and ‘.keg’ sandbox.
- clean-elc [PACKAGE]
-     Clean ‘.elc’ files.
- debug
-     Show debug information.
- files [PACKAGE]
-     Show Elisp files associated with PACKAGE.
- emacs [ARGS...]
-     Exec Emacs with appropriate environment variables.
- eval [SEXP]
-     Eval SEXP via batch Emacs with appropriate environment variables.
- exec COMMAND [ARGS...]
-     Exec COMMAND with appropriate environment variables.
- files [PACKAGE]
-     Show files associated with PACKAGE.
- help
-     Show this help.
- info [PACKAGE]
-     Show PACKAGE information.
- init
-     Create Keg template file.
- install [PACKAGE]
-     Install PACKAGE dependencies in .keg sandbox folder.
- lint [PACKAGE]
-     Exec linters for PACKAGE.
- load-path
-     Show Emacs appropriate ‘load-path’ same format as PATH.
- version
-     Show ‘keg’ version.")))
+     "USAGE: keg \\[SUBCOMMAND\\] \\[OPTIONS\\.\\.\\.\\]$"
+     "^ build \\[PACKAGE\\]$"
+     "^ clean$"
+     "^ clean-elc \\[PACKAGE\\]$"
+     "^ debug$"
+     "^ files \\[PACKAGE\\]$"
+     "^ emacs \\[ARGS\\.\\.\\.\\]$"
+     "^ eval \\[SEXP\\]$"
+     "^ exec COMMAND \\[ARGS\\.\\.\\.\\]$"
+     "^ files \\[PACKAGE\\]$"
+     "^ help$"
+     "^ info \\[PACKAGE\\]$"
+     "^ init$"
+     "^ install \\[PACKAGES\\.\\.\\.\\]$"
+     "^ lint \\[PACKAGE\\]$"
+     "^ load-path$"
+     "^ version$")))
 
 (cort-deftest-generate keg/ansi-cl-macrolet :macroexpand
   '(

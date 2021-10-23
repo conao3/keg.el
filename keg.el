@@ -241,22 +241,24 @@ See `keg-archives' for symbol url mapping."
          `(,(symbol-name elm) . ,url))))
    (or syms (keg-file-read-section 'sources))))
 
-(defun keg-build--resolve-dependency ()
-  "Fetch dependency in .keg folder.
+(defun keg-build--resolve-dependency (packages)
+  "Fetch dependency of PACKAGES in .keg folder.
 See `package-install'."
-  (let ((package-archives (keg-build--package-archives))
+  (let ((packages (append packages '(keg--devs)))
+        (package-archives (keg-build--package-archives))
         (reqs-info (keg-build--get-dependency-from-keg-file))
         transaction)
     (dolist (info reqs-info)
-      (let ((_name (car info))
+      (let ((name (car info))
             (reqs (cdr info)))
-        (condition-case _err
-            (package-download-transaction
-             (setq transaction (package-compute-transaction nil reqs)))
-          (error                     ; refresh and retry if error
-           (package-refresh-contents)
-           (package-download-transaction
-            (setq transaction (package-compute-transaction nil reqs)))))))
+        (when (memq name packages)
+          (condition-case _err
+              (package-download-transaction
+               (setq transaction (package-compute-transaction nil reqs)))
+            (error                     ; refresh and retry if error
+             (package-refresh-contents)
+             (package-download-transaction
+              (setq transaction (package-compute-transaction nil reqs))))))))
     (unless transaction
       (keg--princ)
       (keg--princ "All dependencies already satisfied"))))
