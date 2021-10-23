@@ -83,7 +83,7 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
      "^ init$"
      "^ install \\[PACKAGES\\.\\.\\.\\]$"
      "^ lint \\[PACKAGE\\]$"
-     "^ load-path$"
+     "^ `?load-path'?$"                 ; Symbol is automatically quoted on Emacs 24.5>=.
      "^ version$")))
 
 (cort-deftest-generate keg/ansi-cl-macrolet :macroexpand
