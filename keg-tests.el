@@ -54,14 +54,15 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
                     (shell-command-to-string \"keg files\")))))"
 (declare (indent 1))
   `(cort-deftest ,name
-     ',(mapcan (lambda (elm)
-                 (mapcar
-                  (lambda (regexp)
-                    `(:string-match-p
-                      ,regexp
-                      (keg-tests--string-trim-right (shell-command-to-string ,(car elm)))))
-                  (cdr elm)))
-               (cadr form))))
+     ',(apply #'nconc
+              (mapcar (lambda (elm)
+                        (mapcar
+                         (lambda (regexp)
+                           `(:string-match-p
+                             ,regexp
+                             (keg-tests--string-trim-right (shell-command-to-string ,(car elm)))))
+                         (cdr elm)))
+                      (cadr form)))))
 
 (cort-deftest-with-shell-command keg/subcommand-simple
   '(("./bin/keg version"
