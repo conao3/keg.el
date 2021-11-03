@@ -153,6 +153,22 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
          (macro-1-arg x)
          (macro-&rest-args x))))))
 
+(cort-deftest-generate keg/build--package-archives :equal
+  '(((keg-build--package-archives
+      '(gnu))
+     '(("gnu" . "https://elpa.gnu.org/packages/")))
+    ((keg-build--package-archives
+      '((gnu . "http://elpa.zilongshanren.com/gnu/")))
+     '(("gnu" . "http://elpa.zilongshanren.com/gnu/")))
+    ((keg-build--package-archives
+      '("http://elpa.zilongshanren.com/gnu/"))
+     '(("http://elpa.zilongshanren.com/gnu/" . "http://elpa.zilongshanren.com/gnu/")))
+    ((keg-build--package-archives
+      '((gnu . "http://elpa.zilongshanren.com/gnu/")
+        (melpa . "http://elpa.zilongshanren.com/melpa/")))
+     '(("gnu" . "http://elpa.zilongshanren.com/gnu/")
+       ("melpa" . "http://elpa.zilongshanren.com/melpa/")))))
+
 ;; (provide 'keg-tests)
 
 ;; Local Variables:
