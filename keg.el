@@ -235,10 +235,20 @@ If SYMS is omitted, assume ELPA symbol from reading Keg file.
 See `keg-archives' for symbol url mapping."
   (mapcar
    (lambda (elm)
-     (let ((url (keg--alist-get elm keg-archives)))
-       (if (not url)
-           (error "Source %s is unknown" elm)
-         `(,(symbol-name elm) . ,url))))
+     (cond
+      ((stringp elm)
+       `(,elm . ,elm))
+      ((and (consp elm)
+            (symbolp (car elm))
+            (stringp (cdr elm)))
+       `(,(symbol-name (car elm)) . ,(cdr elm)))
+      ((symbolp elm)
+       (let ((url (keg--alist-get elm keg-archives)))
+         (if (not url)
+             (error "Source %s is unknown" elm)
+           `(,(symbol-name elm) . ,url))))
+      (t
+       (error "%S is invalid source" elm))))
    (or syms (keg-file-read-section 'sources))))
 
 (defun keg-build--resolve-dependency (packages)
