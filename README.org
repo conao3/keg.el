@@ -90,6 +90,16 @@ arguments The mapping between symbols and URLs is as follows.
   "Alist for symbol to ELPA url.")
 #+end_src
 
+In addition, you can customize or add source URLs in =Keg= file
+by writing cons cell like element of keg-archives as source. String is also allowed as source.
+"https://example.com/elpa" means =(https://example\.com/elpa . "https://example.com/elpa")=.
+
+
+#+begin_src emacs-lisp
+  (source (gnu . "http://elpa.zilongshanren.com/gnu/")
+          (melpa . "http://elpa.zilongshanren.com/melpa/"))
+#+end_src
+
 *** package
 A =package= can also contain more details about the package.
 #+begin_src emacs-lisp
