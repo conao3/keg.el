@@ -27,7 +27,7 @@
 (declare-function package-lint-batch-and-exit-1 "ext:package-lint")
 
 (defvar package-archives)
-
+(defvar package-gnupghome-dir)
 (defvar checkdoc-diagnostic-buffer)
 
 (defun keg-lint--package-lint-batch ()
@@ -35,8 +35,10 @@
   (unless noninteractive
     (error "`keg-lint--package-lint-batch' is to be used only with --batch"))
 
+  (setq user-emacs-directory (or (getenv "KEGLINTUSEREMACSDIRECTORY") user-emacs-directory))
   (setq package-user-dir (or (getenv "KEGLINTPACKAGEUSERDIR") package-user-dir))
   (setq package-archives (or (read (getenv "KEGLINTPACKAGEARCHIVES")) package-archives))
+  (setq package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))
   (package-initialize)
   (prog1 'package-lint
     (require 'package-lint)
