@@ -128,7 +128,7 @@ the name of the MELPA recipe file.
 
 **** package/recipe
 =package-args= could accept alist and currently only
-=recipe= is varid.
+=recipe= is valid.
 
 It accepts the same S-expression as the MELPA recipe file.
 
