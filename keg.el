@@ -393,6 +393,7 @@ This function is `string-join' polifill for Emacs < 24.4."
 (defun keg-process-environment ()
   "Return `process-environment' for keg."
   (append (list (format "EMACSLOADPATH=%s" (keg-load-path))
+                (format "KEGLINTUSEREMACSDIRECTORY=%s" (keg-home-dir))
                 (format "KEGLINTPACKAGEUSERDIR=%s" (keg-elpa-dir))
                 (format "KEGLINTPACKAGEARCHIVES=%S" (keg-build--package-archives)))
           process-environment))
@@ -473,6 +474,7 @@ This function is `string-join' polifill for Emacs < 24.4."
   "Set Emacs work in keg sandbox."
   (setq user-emacs-directory (keg-home-dir))
   (setq package-user-dir (keg-elpa-dir))
+  (setq package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))
   (package-initialize)
   (add-to-list 'load-path (expand-file-name default-directory)))
 
