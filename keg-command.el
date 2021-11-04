@@ -357,8 +357,7 @@ USAGE: keg debug"
       (keg-command-install)))
 
     (cond
-     ((null op)
-      (keg-command-install))
+     ((null op))             ;Do nothing because `keg-command-install' is already run.
      ((memq op (keg-subcommands))
       (apply (intern (format "keg-command-%s" (symbol-name op))) args))
      (t
