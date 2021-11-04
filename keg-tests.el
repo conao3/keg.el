@@ -145,13 +145,10 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
          ((macro-1-arg (arg1) `(let ((x 1)) ,arg1))
           (macro-&rest-args (arg1 &rest args) `(let ((x 1)) ,arg1 ,@args)))
        (macro-1-arg x)
-       (macro-&rest-args x))
-     (keg-ansi--cl-macrolet
-         ((macro-1-arg (arg1) `(let ((x 1)) ,arg1)))
-       (keg-ansi--cl-macrolet
-           ((macro-&rest-args (arg1 &rest args) `(let ((x 1)) ,arg1 ,@args)))
-         (macro-1-arg x)
-         (macro-&rest-args x))))))
+       (macro-&rest-args x 1 2))
+     (progn
+       (let ((x 1)) x)
+       (let ((x 1)) x 1 2)))))
 
 (cort-deftest-generate keg/build--package-archives :equal
   '(((keg-build--package-archives
