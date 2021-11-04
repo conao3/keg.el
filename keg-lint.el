@@ -37,7 +37,7 @@
 
   (setq user-emacs-directory (or (getenv "KEGLINTUSEREMACSDIRECTORY") user-emacs-directory))
   (setq package-user-dir (or (getenv "KEGLINTPACKAGEUSERDIR") package-user-dir))
-  (setq package-archives (or (read (getenv "KEGLINTPACKAGEARCHIVES")) package-archives))
+  (setq package-archives (or (read (or (getenv "KEGLINTPACKAGEARCHIVES") "nil")) package-archives))
   (setq package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))
   (package-initialize)
   (prog1 'package-lint
