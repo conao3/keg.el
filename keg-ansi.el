@@ -177,18 +177,19 @@ see `cl-macrolet' for BINDINGS, BODY info.
 
 \(fn ((NAME ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1))
-  (if (cdr bindings)
-      `(keg-ansi--cl-macrolet (,(car bindings)) (keg-ansi--cl-macrolet ,(cdr bindings) ,@body))
-    (if (null bindings) (keg-ansi--macroexp-progn body)
-      (let* ((name (caar bindings))
-             (args (car (cdr (car bindings))))
-             (macrobody (cdr (cdr (car bindings))))
-             (res `(nil ,args ,@macrobody)))
-        (eval (car res))
-        (macroexpand-all (keg-ansi--macroexp-progn body)
-                         (cons (cons name
-                                     (eval `(lambda ,@(cdr res)) t))
-                               macroexpand-all-environment))))))
+  (if (null bindings)
+      (keg-ansi--macroexp-progn body)
+    (macroexpand-all (keg-ansi--macroexp-progn body)
+                     (append
+                      (mapcar
+                       (lambda (binding)
+                         (let* ((name (car binding))
+                                (args (car (cdr binding)))
+                                (macrobody (cdr (cdr binding))))
+                           (cons name
+                                 (eval `(lambda ,args ,@macrobody) t))))
+                       bindings)
+                      macroexpand-all-environment))))
 
 (defun keg-ansi--alist-get (key alist &optional default)
   "Find the first element of ALIST whose `car' equals KEY and return its `cdr'.
