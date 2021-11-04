@@ -150,6 +150,26 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
        (let ((x 1)) x)
        (let ((x 1)) x 1 2)))))
 
+(cort-deftest-generate keg/with-keg-ansi :string=
+  '(((with-keg-ansi
+      (red "foo"))
+     (keg-ansi 'red "foo"))
+    ((with-keg-ansi
+      (blue "foo"))
+     (keg-ansi 'blue "foo"))
+    ((with-keg-ansi
+      (red "foo")
+      (blue "bar"))
+     (concat (keg-ansi 'red "foo")
+             (keg-ansi 'blue "bar")))
+    ((with-keg-ansi
+      (red "foo")
+      (blue "bar")
+      (green "baz"))
+     (concat (keg-ansi 'red "foo")
+             (keg-ansi 'blue "bar")
+             (keg-ansi 'green "baz")))))
+
 (cort-deftest-generate keg/build--package-archives :equal
   '(((keg-build--package-archives
       '(gnu))
