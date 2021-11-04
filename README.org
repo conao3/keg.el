@@ -100,6 +100,9 @@ by writing cons cell like element of keg-archives as source. String is also allo
           (melpa . "http://elpa.zilongshanren.com/melpa/"))
 #+end_src
 
+When sources should be customized only in your environoent, use environmental variable =KEGPACKAGEARCHIVES=.
+Its value should be string which is =read= to list set to =keg-archives=.
+
 *** package
 A =package= can also contain more details about the package.
 #+begin_src emacs-lisp
