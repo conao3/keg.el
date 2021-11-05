@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'macroexp)
+
 (defgroup keg-ansi nil
   "Utility for ANSI terminal escape codes."
   :group 'convenience
