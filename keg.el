@@ -357,7 +357,8 @@ See `package-install'."
 (defun keg-run-script (script)
   "Run script named SCRIPT defined in Keg file."
   (let* ((scripts (keg-file-read-section 'scripts))
-         (form (keg--alist-get (intern script) scripts))
+         (form (or (keg--alist-get (intern script) scripts)
+                   (error "Script named `%s' does not exist" script)))
          (result (eval (cons #'progn form))))
     (if (numberp result) result 0)))
 
