@@ -169,6 +169,24 @@ If last sexp is number, it is used as exit code status. Otherwise return 0.
     (message "World!!!!")))
 #+end_src
 
+Some subcommands (listed below) have special script, which run before/after running the subcommand.
+=pre-SUBCOMMAND= or =post-SUBCOMMAND= runs before or after =SUBCOMMAND= running.
+- =install=
+- =exec=
+- =emacs=
+- =eval=
+- =lint=
+- =build=
+- =clean-elc=
+- =clean=
+
+#+begin_src emacs-lisp
+  (script
+   (pre-install
+    (message "Let's Install!"))
+   (post-install
+    (message "Installation is successful!")))
+#+end_src
 
 *** Keg file Example
 So, for example, the following Keg file is valid.
@@ -195,7 +213,11 @@ So, for example, the following Keg file is valid.
     (keg-shell "KEGINSTALLPACKAGES=\"keg-mode\" keg build keg-mode"))
    (say-hello
     (message "Hello!!!!")
-    (message "World!!!!")))
+    (message "World!!!!"))
+   (pre-install
+    (message "Let's Install!"))
+   (post-install
+    (message "Installation is successful!")))
 #+end_src
 
 This Keg file configured keg to use ELPA and MELPA as
