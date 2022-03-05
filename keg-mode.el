@@ -36,7 +36,7 @@ Original variable is `lisp-mode-symbol-regexp'.")
 
 (defvar keg-mode-font-lock-keywords
   `((,(regexp-opt
-       '("source" "package" "dev-dependency" "disable-lint")
+       '("source" "package" "dev-dependency" "disable-lint" "script")
        'symbols)
      . font-lock-keyword-face)
     (,(regexp-opt
