@@ -26,6 +26,7 @@
     - [[#version][version]]
     - [[#help][help]]
     - [[#debug][debug]]
+    - [[#run][run]]
   - [[#keg-emacs-package][keg Emacs package]]
   - [[#keg-mode-emacs-major-mode][keg-mode Emacs major-mode]]
   - [[#keg-ansi-library][keg-ansi library]]
@@ -143,6 +144,32 @@ package development like =buttercup= or =ert=.
 (dev-dependency {package}...)
 #+end_src
 
+*** script
+=script= defines sexp evaluated by =keg script [SCRIPT-NAMEa]=.
+#+begin_src emacs-lisp
+  (script
+   ({script-name}
+    {sexp}...)
+   ...)
+#+end_src
+
+You can use function =keg-shell= when you want to run shell command.
+This function recieve one argument =COMMAND=, which is shell command string.
+
+If last sexp is number, it is used as exit code status. Otherwise return 0.
+
+#+begin_src emacs-lisp
+  (script
+   (test
+    (keg-shell "keg exec emacs --batch -l keg-tests.el -f cort-test-run"))
+   (build-keg-mode
+    (keg-shell "KEGINSTALLPACKAGES=\"keg-mode\" keg build keg-mode"))
+   (say-hello
+    (message "Hello!!!!")
+    (message "World!!!!")))
+#+end_src
+
+
 *** Keg file Example
 So, for example, the following Keg file is valid.
 #+begin_src emacs-lisp
@@ -160,6 +187,15 @@ So, for example, the following Keg file is valid.
     (recipe . (flycheck-keg :fetcher github :repo "conao3/keg.el" :files ("flycheck-keg.el")))))
 
   (dev-dependency cort)
+
+  (script
+   (test
+    (keg-shell "keg exec emacs --batch -l keg-tests.el -f cort-test-run"))
+   (build-keg-mode
+    (keg-shell "KEGINSTALLPACKAGES=\"keg-mode\" keg build keg-mode"))
+   (say-hello
+    (message "Hello!!!!")
+    (message "World!!!!")))
 #+end_src
 
 This Keg file configured keg to use ELPA and MELPA as
@@ -281,6 +317,13 @@ Show subcommand help.
   keg debug
 #+end_src
 Show debug info.
+
+*** run
+#+begin_src shell
+  keg run [SCRIPT]
+#+end_src
+Run script named =SRCIPT= defined in Keg file.
+See also [[#script][script]].
 
 ** keg Elisp package
 - keg-file-dir :: Get directory path which =Keg= located

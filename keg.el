@@ -80,7 +80,7 @@ If no found the directory, returns nil."
   "Return sexp from Keg file search from `deafult-directory'.
 If no found the Keg file, returns nil."
   (let ((path (keg-file-path))
-        sources devs packages lint-disables)
+        sources devs packages lint-disables scripts)
     (when path
       (dolist (elm (read (with-temp-buffer
                            (insert-file-contents path)
@@ -95,11 +95,14 @@ If no found the Keg file, returns nil."
            ((eq 'package op)
             (dolist (elm args) (push elm packages)))
            ((eq 'disable-lint op)
-            (dolist (elm args) (push elm lint-disables))))))
+            (dolist (elm args) (push elm lint-disables)))
+           ((eq 'script op)
+            (dolist (elm args) (push elm scripts))))))
       `((sources . ,(nreverse (delete-dups sources)))
         (devs . ,(nreverse (delete-dups devs)))
         (packages . ,(nreverse (delete-dups packages)))
-        (disables . ,(nreverse (delete-dups lint-disables)))))))
+        (disables . ,(nreverse (delete-dups lint-disables)))
+        (scripts . ,(nreverse (delete-dups scripts)))))))
 
 (defun keg-file-read-section (section)
   "Return SECTION value from Keg file."
@@ -332,6 +335,31 @@ See `package-install'."
           (unless (= 0 pcode)
             (setq code pcode)))))
     code))
+
+
+;;; Script
+
+(defun keg-shell (command)
+  "Run shell command COMMAND."
+  (with-temp-buffer
+    (let ((process
+           (start-process "keg-shell"
+                          (current-buffer)
+                          shell-file-name
+                          shell-command-switch
+                          command)))
+      (set-process-filter process (lambda (_proc output) (princ output)))
+      (while (not (memq (process-status process) '(exit closed failed signal)))
+        (accept-process-output process))
+      (keg--princ "Exit with status code %d" (process-exit-status process))
+      (process-exit-status process))))
+
+(defun keg-run-script (script)
+  "Run script named SCRIPT defined in Keg file."
+  (let* ((scripts (keg-file-read-section 'scripts))
+         (form (keg--alist-get (intern script) scripts))
+         (result (eval (cons #'progn form))))
+    (if (numberp result) result 0)))
 
 
 ;;; Functions
