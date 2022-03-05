@@ -343,13 +343,12 @@ See `package-install'."
   "Run shell command COMMAND."
   (with-temp-buffer
     (let ((process
-           (make-process
-            :name "keg-shell"
-            :bufer (current-buffer)
-            :command (list shell-file-name
-                           shell-command-switch
-                           command)
-            :filter (lambda (_proc output) (princ output)))))
+           (start-process "keg-shell"
+                          (current-buffer)
+                          shell-file-name
+                          shell-command-switch
+                          command)))
+      (set-process-filter process (lambda (_proc output) (princ output)))
       (while (not (memq (process-status process) '(exit closed failed signal)))
         (accept-process-output process))
       (keg--princ "Exit with status code %d" (process-exit-status process))
