@@ -354,11 +354,13 @@ See `package-install'."
       (keg--princ "Exit with status code %d" (process-exit-status process))
       (process-exit-status process))))
 
-(defun keg-run-script (script)
-  "Run script named SCRIPT defined in Keg file."
+(defun keg-run-script (script &optional ignore)
+  "Run script named SCRIPT defined in Keg file.
+Ignore absence of the script if IGNORE is non-nil."
   (let* ((scripts (keg-file-read-section 'scripts))
          (form (or (keg--alist-get (intern script) scripts)
-                   (error "Script named `%s' does not exist" script)))
+                   (unless ignore
+                     (error "Script named `%s' does not exist" script))))
          (result (eval (cons #'progn form))))
     (if (numberp result) result 0)))
 
