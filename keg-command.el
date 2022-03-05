@@ -144,7 +144,8 @@ USAGE: keg install [PACKAGES...]"
                                  (ver (cadr elm)))
                              `(,pkg ,(package-version-join ver))))
                          (keg--alist-get 'keg--devs reqinfo))))
-    (keg-build--resolve-dependency packages)))
+    (keg-around-script install
+      (keg-build--resolve-dependency packages))))
 
 (defun keg-command-exec (&rest args)
   "Exec COMMAND with appropriate environment variables.
@@ -152,14 +153,15 @@ ARGS is list of string.
 
 USAGE: keg exec COMMAND [ARGS...]"
   (keg--argument-count-check 1 -1 'exec args)
-  (let ((proc (keg-start-process
-               (mapconcat #'shell-quote-argument args " "))))
-    (set-process-sentinel
-     proc
-     (lambda (proc _event)
-       (kill-emacs (process-exit-status proc))))
-    (while t                            ; wait acync process
-      (accept-process-output proc 0 100))))
+  (keg-around-script exec
+    (let ((proc (keg-start-process
+                 (mapconcat #'shell-quote-argument args " "))))
+      (set-process-sentinel
+       proc
+       (lambda (proc _event)
+         (kill-emacs (process-exit-status proc))))
+      (while t                            ; wait acync process
+        (accept-process-output proc 0 100)))))
 
 (defun keg-command-emacs (&rest args)
   "Exec Emacs with appropriate environment variables.
@@ -167,7 +169,8 @@ Exec Emacs with ARGS.
 
 USAGE: keg Emacs [ARGS...]"
   (keg--argument-count-check -1 -1 'emacs args)
-  (apply #'keg-command-exec "emacs" args))
+  (keg-around-script emacs
+    (apply #'keg-command-exec "emacs" args)))
 
 (defun keg-command-eval (&rest args)
   "Eval SEXP via batch Emacs with appropriate environment variables.
@@ -176,8 +179,9 @@ ARGS are (separated) SEXP.
 USAGE: keg eval [SEXP]"
   (keg--argument-count-check -1 -1 'eval args) ; sexp is separated
   (when args
-    (keg-command-exec "emacs" "--batch"
-                      (format "--eval=\"%s\"" (keg--string-join args " ")))))
+    (keg-around-script eval
+      (keg-command-exec "emacs" "--batch"
+                        (format "--eval=\"%s\"" (keg--string-join args " "))))))
 
 (defun keg-command-lint (&rest args)
   "Exec linters for PACKAGE.
@@ -185,8 +189,9 @@ ARGS first value is specified package.
 
 USAGE: keg lint [PACKAGE]"
   (keg--argument-count-check -1 1 'lint args)
-  (let ((pkg (keg--argument-package-check (car args) 'allow)))
-    (kill-emacs (keg-lint pkg))))
+  (keg-around-script lint
+    (let ((pkg (keg--argument-package-check (car args) 'allow)))
+      (kill-emacs (keg-lint pkg)))))
 
 (defun keg-command-build (&rest args)
   "Byte compile for PACKAGE.
@@ -194,10 +199,11 @@ ARGS first value is specified package.
 
 USAGE: keg build [PACKAGE]"
   (keg--argument-count-check -1 1 'build args)
-  (dolist (file (keg-elisp-files (car args)))
-    (if (fboundp 'byte-recompile-file)
-        (byte-recompile-file file 'force 0)
-      (byte-compile-file file))))
+  (keg-around-script build
+    (dolist (file (keg-elisp-files (car args)))
+      (if (fboundp 'byte-recompile-file)
+          (byte-recompile-file file 'force 0)
+        (byte-compile-file file)))))
 
 (defun keg-command-clean-elc (&rest args)
   "Clean `.elc' files.
@@ -205,11 +211,12 @@ ARGS first value is specified package.
 
 USAGE: keg clean-elc [PACKAGE]"
   (keg--argument-count-check -1 1 'clean-elc args)
-  (let ((pkg (keg--argument-package-check (car args) 'allow)))
-    (dolist (file (keg-elisp-files pkg))
-      (let ((elc (concat file "c")))
-        (keg--princ (format "Removing %s..." elc))
-        (delete-file elc)))))
+  (keg-around-script clean-elc
+    (let ((pkg (keg--argument-package-check (car args) 'allow)))
+      (dolist (file (keg-elisp-files pkg))
+        (let ((elc (concat file "c")))
+          (keg--princ (format "Removing %s..." elc))
+          (delete-file elc))))))
 
 (defun keg-command-clean (&rest args)
   "Clean `.elc' files and `.keg' sandbox.
@@ -217,9 +224,10 @@ ARGS is CLI argument.
 
 USAGE: keg clean"
   (keg--argument-count-check 0 0 'clean args)
-  (keg--princ "Removing .keg...")
-  (delete-directory ".keg" 'force)
-  (keg-command-clean-elc))
+  (keg-around-script clean
+   (keg--princ "Removing .keg...")
+   (delete-directory ".keg" 'force)
+   (keg-command-clean-elc)))
 
 (defun keg-command-info (&rest args)
   "Show PACKAGE information.

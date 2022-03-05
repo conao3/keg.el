@@ -364,6 +364,14 @@ Ignore absence of the script if IGNORE is non-nil."
          (result (eval (cons #'progn form))))
     (if (numberp result) result 0)))
 
+(defmacro keg-around-script (subcommand &rest body)
+  "Run script named SUBCOMMAND prefixed with `pre-'/`post' before/after BODY."
+  (declare (indent defun))
+  `(if (and (= 0 (keg-run-script (concat "pre-" (symbol-name ',subcommand)) t))
+            (prog1 t ,@body)
+            (= 0 (keg-run-script (concat "post-" (symbol-name ',subcommand)) t)))
+       0 1))
+
 
 ;;; Functions
 
