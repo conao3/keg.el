@@ -315,6 +315,14 @@ USAGE: keg debug"
   (keg--princ " Keg file parsed")
   (keg--princ (keg--indent 5 (pp-to-string (keg-file-read)))))
 
+(defun keg-command-run (&rest args)
+  "Run script named SRCIPT defined in Keg file.
+ARGS is name of script.
+
+USAGE: keg run [SCRIPT]"
+  (keg--argument-count-check 1 1 'run args)
+  (kill-emacs (keg-run-script (car args))))
+
 (defvar keg-global-commands '(init help version debug)
   "List of commands that don't require a Keg file.")
 
