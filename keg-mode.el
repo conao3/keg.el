@@ -40,7 +40,7 @@ Original variable is `lisp-mode-symbol-regexp'.")
        'symbols)
      . font-lock-keyword-face)
     (,(regexp-opt
-       '("gnu" "melpa-stable" "melpa" "org")
+       '("gnu" "melpa-stable" "melpa" "org" "nongnu")
        'symbols)
      . font-lock-variable-name-face)
     ;; Constant values.
