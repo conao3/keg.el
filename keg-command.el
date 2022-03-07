@@ -216,7 +216,7 @@ USAGE: keg clean-elc [PACKAGE]"
       (dolist (file (keg-elisp-files pkg))
         (let ((elc (concat file "c")))
           (keg--princ (format "Removing %s..." elc))
-          (delete-file elc))))))
+          (ignore-errors (delete-file elc)))))))
 
 (defun keg-command-clean (&rest args)
   "Clean `.elc' files and `.keg' sandbox.
