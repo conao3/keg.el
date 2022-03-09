@@ -362,8 +362,12 @@ Ignore absence of the script if IGNORE is non-nil."
          (form (or (keg--alist-get (intern script) scripts)
                    (unless ignore
                      (error "Script named `%s' does not exist" script))))
-         (result (eval (cons #'progn form))))
-    (if (numberp result) result 0)))
+         (result (eval (cons #'progn form)))
+         (status (if (numberp result) result 0)))
+    (unless (= status 0)
+      (keg--princ "Script \"%s\" exit abnormally with status code %d"
+                  script status))
+    status))
 
 (defmacro keg-around-script (subcommand &rest body)
   "Run script named SUBCOMMAND prefixed with `pre-'/`post' before/after BODY."
