@@ -445,12 +445,14 @@ causes any installation."
     (`windows-nt (keg--string-join load-path ";"))
     (_ (keg--string-join (mapcar #'shell-quote-argument load-path) ":"))))
 
-(defun keg-process-environment ()
-  "Return `process-environment' for keg."
+(defun keg-process-environment (&optional no-install)
+  "Return `process-environment' for keg.
+Add environmental variable which inhibit installation if NO-INSTALL is non-nil."
   (append (list (format "EMACSLOADPATH=%s" (keg-load-path))
                 (format "KEGLINTUSEREMACSDIRECTORY=%s" (keg-home-dir))
                 (format "KEGLINTPACKAGEUSERDIR=%s" (keg-elpa-dir))
                 (format "KEGLINTPACKAGEARCHIVES=%S" (keg-build--package-archives)))
+          (when no-install (list (format "KEGNOINSTALL=%S" t)))
           process-environment))
 
 (defun keg-start-process (&rest command)
@@ -461,7 +463,7 @@ causes any installation."
 (defun keg-start-process-shell-command (command)
   "Exec COMMAND and return process object."
   (keg--princ "Exec command: %s" command)
-  (let* ((process-environment (keg-process-environment))
+  (let* ((process-environment (keg-process-environment t))
          (proc (start-process-shell-command
                 "keg"
                 (generate-new-buffer "*keg*")
