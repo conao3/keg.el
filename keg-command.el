@@ -154,8 +154,7 @@ ARGS is list of string.
 USAGE: keg exec COMMAND [ARGS...]"
   (keg--argument-count-check 1 -1 'exec args)
   (keg-around-script exec
-    (let ((proc (keg-start-process
-                 (mapconcat #'shell-quote-argument args " "))))
+    (let ((proc (apply #'keg-start-process args)))
       (set-process-sentinel
        proc
        (lambda (proc _event)
