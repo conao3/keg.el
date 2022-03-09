@@ -298,7 +298,7 @@ See `package-install'."
                         ,(expand-file-name "keg-lint.el" keg-directory)
                         ,(format "--funcall=%s" fn)
                         ,@files))
-             (proc (keg-start-process (keg--string-join command " "))))
+             (proc (apply #'keg-start-process command)))
         (set-process-sentinel
          proc
          (lambda (proc _event)
@@ -339,20 +339,21 @@ See `package-install'."
 
 ;;; Script
 
-(defun keg-shell (command)
-  "Run shell command COMMAND."
-  (with-temp-buffer
-    (let ((process
-           (start-process "keg-shell"
-                          (current-buffer)
-                          shell-file-name
-                          shell-command-switch
-                          command)))
-      (set-process-filter process (lambda (_proc output) (princ output)))
-      (while (not (memq (process-status process) '(exit closed failed signal)))
-        (accept-process-output process))
-      (keg--princ "Exit with status code %d" (process-exit-status process))
-      (process-exit-status process))))
+(defun keg-shell (&rest commands)
+  "Run shell command COMMANDS."
+  (let (command
+        (status 0))
+    (while (and commands (= status 0))
+      (setq command (car commands))
+      (setq commands (cdr commands))
+      (with-temp-buffer
+        (let ((process (if (listp command)
+                           (apply #'keg-start-process command)
+                         (keg-start-process-shell-command command))))
+          (while (not (memq (process-status process) '(exit closed failed signal)))
+            (accept-process-output process))
+          (setq status (process-exit-status process)))))
+    status))
 
 (defun keg-run-script (script &optional ignore)
   "Run script named SCRIPT defined in Keg file.
@@ -439,12 +440,17 @@ This function is `string-join' polifill for Emacs < 24.4."
 
 (defun keg-start-process (&rest command)
   "Exec COMMAND and return process object."
-  (keg--princ "Exec command: %s" (keg--string-join command " "))
+  (keg-start-process-shell-command
+   (mapconcat #'shell-quote-argument command " ")))
+
+(defun keg-start-process-shell-command (command)
+  "Exec COMMAND and return process object."
+  (keg--princ "Exec command: %s" command)
   (let* ((process-environment (keg-process-environment))
          (proc (start-process-shell-command
                 "keg"
                 (generate-new-buffer "*keg*")
-                (keg--string-join command " "))))
+                command)))
     (set-process-filter
      proc
      (lambda (_proc str)
