@@ -145,7 +145,7 @@ package development like =buttercup= or =ert=.
 #+end_src
 
 *** script
-=script= defines sexp evaluated by =keg script [SCRIPT-NAMEa]=.
+=script= defines sexp evaluated by =keg script [SCRIPT-NAME]=.
 #+begin_src emacs-lisp
   (script
    ({script-name}
@@ -154,14 +154,31 @@ package development like =buttercup= or =ert=.
 #+end_src
 
 You can use function =keg-shell= when you want to run shell command.
-This function recieve one argument =COMMAND=, which is shell command string.
+This function recieve any number of arguments, =COMMAND= s.
+Each argument is shell command string or list of strings whose car is command name
+and whose cdr is list of string argument passed to command.
+each =COMMAND= run if previous =COMMAND= returns 0, which means exiting normally.
+In the other words, each COMMAND pretendto be connected with =&&=.
 
-If last sexp is number, it is used as exit code status. Otherwise return 0.
+If returned value is number, it is used as exit code status. Otherwise return 0.
 
 #+begin_src emacs-lisp
   (script
+   ;; Pass shell command
    (test
     (keg-shell "keg exec emacs --batch -l keg-tests.el -f cort-test-run"))
+   ;; Pass command and arguments (`test2' is same as `test')
+   (test2
+    (keg-shell '("keg" "exec" "emacs" "--batch" "-l" "keg-tests.el" "-f" "cort-test-run")))
+   ;; Continuous multiple command
+   (test-all
+    (keg-shell "keg clean-elc"
+               "keg run test"
+               "keg build"
+               ;; You can use different style COMMAND in one `keg-shell'
+               '("keg" "run" "test")
+               "keg-clean-elc"))
+
    (build-keg-mode
     (keg-shell "KEGINSTALLPACKAGES=\"keg-mode\" keg build keg-mode"))
    (say-hello
