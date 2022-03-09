@@ -344,7 +344,8 @@ USAGE: keg run [SCRIPT]"
     (error "`keg-command' is to be used only with --batch"))
   (let* ((opraw (car command-line-args-left))
          (op (when opraw (intern opraw)))
-         (args (cdr command-line-args-left)))
+         (args (cdr command-line-args-left))
+         (no-install (keg--no-install-p op keg-no-install-commands)))
     (when (not (memq op keg-global-commands))
         (keg-initialize))
     (cond
@@ -362,12 +363,12 @@ USAGE: keg run [SCRIPT]"
       (keg--princ "Exec `keg init' to create Keg file")
       (kill-emacs 1))
      ((and
-       (not (memq op keg-no-install-commands))
+       (not no-install)
        (not (file-directory-p user-emacs-directory)))
       (keg--princ "As missing .keg sandbox, install dependencies")
       (make-directory user-emacs-directory 'parent)
       (keg-command-install))
-     ((not (memq op keg-no-install-commands))
+     ((not no-install)
       (make-directory user-emacs-directory 'parent)
       (keg-command-install)))
 

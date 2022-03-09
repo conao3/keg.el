@@ -405,6 +405,21 @@ This function is `alist-get' polifill for Emacs < 25.1."
 This function is `string-join' polifill for Emacs < 24.4."
   (mapconcat 'identity strings separator))
 
+(defun keg--no-install-p (op no-install-commands)
+  "Return t if keg should not run install command.
+OP is operator which indicates subcommand.  NO-INSTALL-COMMANDS is list
+of symbol which means operators which should not cause installation.
+
+If environmental variable \"KEGNOINSTALL\" can be read, it should be list
+which means NO-INSTALL-COMMANDS, or t which means all commands should not
+causes any installation."
+  (let* ((env (getenv "KEGNOINSTALL"))
+         (sexp-env (when env (read env)))
+         (no-install-commands (append no-install-commands (when (listp sexp-env) sexp-env))))
+    (if (eq sexp-env t)
+        t
+      (memq op no-install-commands))))
+
 (defun keg-install-package (pkg)
   "Install PKG in .keg folder."
   (let ((package-archives (keg-build--package-archives '(gnu melpa))))
