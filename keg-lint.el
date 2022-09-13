@@ -59,6 +59,7 @@
       (let (pcode)
         (ignore-errors (kill-buffer "*Compile-Log*"))
         (byte-compile-file file)
+        (delete-file (byte-compile-dest-file file))
         (with-current-buffer (get-buffer-create "*Compile-Log*")
           (if (<= (- (point-max) (point)) 3)
               (setq pcode 0)
