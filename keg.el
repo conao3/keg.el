@@ -542,7 +542,8 @@ Add environmental variable which inhibit installation if NO-INSTALL is non-nil."
   (setq package-user-dir (keg-elpa-dir))
   (setq package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))
   (package-initialize)
-  (add-to-list 'load-path (expand-file-name default-directory)))
+  (add-to-list 'load-path (expand-file-name default-directory))
+  (setq ert-batch-backtrace-right-margin nil))
 
 (provide 'keg)
 
