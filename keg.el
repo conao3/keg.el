@@ -536,13 +536,16 @@ Add environmental variable which inhibit installation if NO-INSTALL is non-nil."
         (match-string 1 doc)
         'case)))))
 
+(defvar ert-batch-backtrace-right-margin)
+
 (defun keg-initialize ()
   "Set Emacs work in keg sandbox."
   (setq user-emacs-directory (keg-home-dir))
   (setq package-user-dir (keg-elpa-dir))
   (setq package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))
   (package-initialize)
-  (add-to-list 'load-path (expand-file-name default-directory)))
+  (add-to-list 'load-path (expand-file-name default-directory))
+  (setq ert-batch-backtrace-right-margin nil))
 
 (provide 'keg)
 
