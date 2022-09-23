@@ -536,6 +536,8 @@ Add environmental variable which inhibit installation if NO-INSTALL is non-nil."
         (match-string 1 doc)
         'case)))))
 
+(defvar ert-batch-backtrace-right-margin)
+
 (defun keg-initialize ()
   "Set Emacs work in keg sandbox."
   (setq user-emacs-directory (keg-home-dir))
