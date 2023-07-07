@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'keg-core)
+(require 'keg-command-lint)
 
 (defvar keg-directory)
 
