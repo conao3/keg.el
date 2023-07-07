@@ -53,8 +53,7 @@
   "Alist for symbol to ELPA url.")
 
 (defvar keg-version
-  (eval-when-compile
-    (lm-version (expand-file-name "keg.el" keg-directory)))
+  (lm-version (expand-file-name "keg.el" keg-directory))
   "Keg version.")
 
 
