@@ -45,6 +45,10 @@ jobs:
             only_keg: true
           - emacs_version: '24.3'
             only_keg: true
+          - emacs_version: '24.4'
+            only_keg: true
+          - emacs_version: '24.5'
+            only_keg: true
     steps:
     - uses: actions/checkout@v1
     - uses: purcell/setup-emacs@master
