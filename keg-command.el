@@ -334,7 +334,7 @@ USAGE: keg run [SCRIPT]"
   "List of commands that don't require a Keg file.")
 
 (defvar keg-no-install-commands `(,@keg-global-commands
-                                  install clean clean-elc info)
+                                  install clean clean-elc info run)
   "List of commands that don't require dependency installation.")
 
 
