@@ -26,6 +26,7 @@
 ;;; Code:
 
 (require 'cort)
+(require 'cl-lib)
 (require 'keg)
 
 (defsubst keg-tests--string-trim-right (string &optional regexp)
@@ -36,8 +37,10 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
                            string)))
     (if i (substring string 0 i) string)))
 
-(defmacro cort-deftest-with-shell-command (name form)
+(cl-defmacro cort-deftest-with-shell-command (name form &key working-directory)
   "Return `cort-deftest' compare with `string=' for NAME, FORM.
+If WORKING-DIRECTORY is non-nil, it should be string which specifies directory,
+where the shell command will run.
 
   (cort-deftest-with-shell-command keg/subcommand-help
     '((\"keg version\"
@@ -52,7 +55,7 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
          (:string= \"keg-ansi.el\\nkeg-mode.el\\nkeg.el\"
                    (string-trim-right
                     (shell-command-to-string \"keg files\")))))"
-(declare (indent 1))
+  (declare (indent 1))
   `(cort-deftest ,name
      ',(apply #'nconc
               (mapcar (lambda (elm)
@@ -60,7 +63,13 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
                          (lambda (regexp)
                            `(:string-match-p
                              ,regexp
-                             (keg-tests--string-trim-right (shell-command-to-string ,(car elm)))))
+                             (keg-tests--string-trim-right
+                              (let ((default-directory
+                                      ,(if working-directory
+                                           (expand-file-name working-directory
+                                                             (file-name-directory load-file-name))
+                                         (file-name-directory load-file-name))))
+                                (shell-command-to-string ,(car elm))))))
                          (cdr elm)))
                       (cadr form)))))
 
@@ -86,6 +95,13 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
      "^ `?load-path'?$"                 ; Symbol is automatically quoted on Emacs 24.5>=.
      "^ run \\[SCRIPT\\]$"
      "^ version$")))
+
+(cort-deftest-with-shell-command keg/lint
+  '(("keg lint"
+     ;; HACK: Apply `string-match-p' with void string to ensure the command exits normally.
+     ""))
+  :working-directory
+  "test-data")
 
 (cort-deftest-generate keg/ansi-cl-macrolet :macroexpand
   '(
