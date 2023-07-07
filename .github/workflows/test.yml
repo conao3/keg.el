@@ -13,7 +13,7 @@ jobs:
         version: '28.2'
     - uses: conao3/setup-keg@master
     - name: Run lint
-      run: 'make lint'
+      run: 'keg lint'
 
   test:
     runs-on: ubuntu-latest
@@ -59,16 +59,16 @@ jobs:
 
     - name: Run tests of keg
       if: matrix.allow_failure != true
-      run: 'make test-keg'
+      run: 'keg run test-all-keg'
 
     - name: Run tests of keg-mode
       if: matrix.allow_failure != true && matrix.only_keg != true
-      run: 'make test-keg-mode'
+      run: 'keg run test-all-keg-mode'
 
     - name: Run tests of flycheck-keg
       if: matrix.allow_failure != true && matrix.only_keg != true
-      run: 'make test-flycheck-keg'
+      run: 'keg run test-all-flycheck-keg'
 
     - name: Run tests (allow failure)
       if: matrix.allow_failure == true
-      run: 'make test || true'
+      run: 'keg run test-all-keg || true'

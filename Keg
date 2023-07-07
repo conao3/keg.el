@@ -12,3 +12,31 @@
   (recipe . (flycheck-keg :fetcher github :repo "conao3/keg.el" :files ("flycheck-keg.el")))))
 
 (dev-dependency cort)
+
+(script
+ (build-keg
+  (keg-shell "keg build keg"))
+ (build-keg-mode
+  (keg-shell "keg build keg-mode"))
+ (build-flycheck-keg
+  (keg-shell "keg build flycheck-keg"))
+ (test-keg
+  (keg-shell "keg exec emacs --batch -l keg-tests.el -f cort-test-run"))
+ (test-all-keg
+  (keg-shell
+   "KEGINSTALLPACKAGES=\"keg\" keg install"
+   "keg clean-elc"
+   "keg run test-keg"
+   "keg run build-keg"
+   "keg run test-keg"
+   "keg clean-elc"))
+ (test-all-keg-mode
+  (keg-shell
+   "KEGINSTALLPACKAGES=\"keg-mode\" keg install"
+   "keg run build-keg-mode"
+   "keg clean-elc"))
+ (test-all-flycheck-keg
+  (keg-shell
+   "KEGINSTALLPACKAGES=\"flycheck-keg\" keg install"
+   "keg run build-flycheck-keg"
+   "keg clean-elc")))
