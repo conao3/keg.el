@@ -24,9 +24,7 @@
 
 ;;; Code:
 
-(provide 'keg-command)
-
-(require 'keg)
+(require 'keg-core)
 
 (defvar keg-directory)
 
@@ -51,18 +49,6 @@ but currently %s arguments have been specified"
                         (if (not (= -1 num-min)) num-min 0)
                         (if (not (= -1 num-max)) num-max 'inf)
                         num)))))))
-
-(defun keg--argument-package-check (package &optional allow-nil)
-  "Check PACKAGE is one of defined packages.
-Return package symbol if package defined.
-PACKAGE as string is also acceptable.
-If ALLOW-NIL is non-nil, it don't warn if package is nil."
-  (let ((packages (keg-packages))
-        (pkg (if (not (stringp package)) package (intern package))))
-    (if (not (memq pkg (keg-packages)))
-        (unless allow-nil
-          (warn "Package %s is not defined.  Package should one of %s" pkg packages))
-      pkg)))
 
 (defun keg-command-help (&rest args)
   "Show this help.
@@ -381,4 +367,5 @@ USAGE: keg run [SCRIPT]"
       (keg--princ)
       (error (format "Subcommand `%s' is not defined" op))))))
 
+(provide 'keg-command)
 ;;; keg-command.el ends here
