@@ -73,10 +73,29 @@ where the shell command will run.
                          (cdr elm)))
                       (cadr form)))))
 
-(cort-deftest-with-shell-command keg/subcommand-simple
+
+;;; "keg version"
+
+(cort-deftest-with-shell-command keg/version/without-argument/text
   '(("./bin/keg version"
-     "Keg [0-9.]+ running on Emacs [0-9.]+")
-    ("./bin/keg help"
+     "Keg [0-9.]+ running on Emacs [0-9.]+")))
+
+(cort-deftest keg/version/without-argument/exit-code
+  '((:=
+     (let ((command (expand-file-name "bin/keg"))
+           (default-directory (expand-file-name "./test-data")))
+       (shell-command
+        (mapconcat #'shell-quote-argument
+                   (list command
+                         "version")
+                   " ")))
+     0)))
+
+
+;;; "keg help"
+
+(cort-deftest-with-shell-command keg/help/without-argument/text
+  '(("./bin/keg help"
      "USAGE: keg \\[SUBCOMMAND\\] \\[OPTIONS\\.\\.\\.\\]$"
      "^ build \\[PACKAGE\\]$"
      "^ clean$"
@@ -96,12 +115,33 @@ where the shell command will run.
      "^ run \\[SCRIPT\\]$"
      "^ version$")))
 
-(cort-deftest-with-shell-command keg/lint
-  '(("keg lint"
-     ;; HACK: Apply `string-match-p' with void string to ensure the command exits normally.
-     ""))
-  :working-directory
-  "test-data")
+(cort-deftest keg/help/without-argument/exit-code
+  '((:=
+     (let ((command (expand-file-name "bin/keg"))
+           (default-directory (expand-file-name "./test-data")))
+       (shell-command
+        (mapconcat #'shell-quote-argument
+                   (list command
+                         "help")
+                   " ")))
+     0)))
+
+
+;;; "keg lint"
+
+(cort-deftest keg/lint/without-argument/exit-code
+  '((:=
+     (let ((command (expand-file-name "bin/keg"))
+           (default-directory (expand-file-name "./test-data")))
+       (shell-command
+        (mapconcat #'shell-quote-argument
+                   (list command
+                         "lint")
+                   " ")))
+     0)))
+
+
+;; Inner functions
 
 (cort-deftest-generate keg/ansi-cl-macrolet :macroexpand
   '(
