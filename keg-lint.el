@@ -24,9 +24,10 @@
 
 ;;; Code:
 
+(require 'package)
+
 (declare-function package-lint-batch-and-exit-1 "ext:package-lint")
 
-(defvar package-archives)
 (defvar package-gnupghome-dir)
 (defvar checkdoc-diagnostic-buffer)
 
