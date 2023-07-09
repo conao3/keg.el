@@ -73,6 +73,10 @@ where the shell command will run.
                          (cdr elm)))
                       (cadr form)))))
 
+(defsubst car-equal (cons1 cons2)
+  "Return non-nil when car of CONS1 equals car of CONS2."
+  (equal (car cons1) (car cons2)))
+
 
 ;;; "keg version"
 
@@ -81,15 +85,19 @@ where the shell command will run.
      "Keg [0-9.]+ running on Emacs [0-9.]+")))
 
 (cort-deftest keg/version/without-argument/exit-code
-  '((:=
+  '((:car-equal
      (let ((command (expand-file-name "bin/keg"))
            (default-directory (expand-file-name "./test-data")))
-       (shell-command
-        (mapconcat #'shell-quote-argument
-                   (list command
-                         "version")
-                   " ")))
-     0)))
+       (with-temp-buffer
+         (list
+          (shell-command
+           (mapconcat #'shell-quote-argument
+                      (list command
+                            "version")
+                      " ")
+           nil (current-buffer))
+          (buffer-substring-no-properties (point-min) (point-max)))))
+     '(0 ""))))
 
 
 ;;; "keg help"
@@ -116,30 +124,37 @@ where the shell command will run.
      "^ version$")))
 
 (cort-deftest keg/help/without-argument/exit-code
-  '((:=
+  '((:car-equal
      (let ((command (expand-file-name "bin/keg"))
            (default-directory (expand-file-name "./test-data")))
-       (shell-command
-        (mapconcat #'shell-quote-argument
-                   (list command
-                         "help")
-                   " ")))
-     0)))
+       (with-temp-buffer
+         (list
+          (shell-command
+           (mapconcat #'shell-quote-argument
+                      (list command
+                            "help")
+                      " ")
+           nil (current-buffer))
+          (buffer-substring-no-properties (point-min) (point-max)))))
+     '(0 ""))))
 
 
 ;;; "keg lint"
 
 (cort-deftest keg/lint/without-argument/exit-code
-  '((:=
+  '((:car-equal
      (let ((command (expand-file-name "bin/keg"))
            (default-directory (expand-file-name "./test-data")))
-       (shell-command
-        (mapconcat #'shell-quote-argument
-                   (list command
-                         "lint")
-                   " ")))
-     0)))
-
+       (with-temp-buffer
+         (list
+          (shell-command
+           (mapconcat #'shell-quote-argument
+                      (list command
+                            "lint")
+                      " ")
+           nil (current-buffer))
+          (buffer-substring-no-properties (point-min) (point-max)))))
+     '(0 ""))))
 
 ;; Inner functions
 
