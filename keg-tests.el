@@ -37,6 +37,16 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
                            string)))
     (if i (substring string 0 i) string)))
 
+(defun shell-command-return-tuple (command)
+  "Run COMMAND and return (EXITCODE STDOUT STDERR)."
+  (with-temp-buffer
+    (let ((stdout (current-buffer)))
+      (with-temp-buffer
+        (let ((stderr (current-buffer)))
+          (list (shell-command command stdout stderr)
+                (with-current-buffer stdout (buffer-substring-no-properties (point-min) (point-max)))
+                (with-current-buffer stderr (buffer-substring-no-properties (point-min) (point-max)))))))))
+
 (cl-defmacro cort-deftest-with-shell-command (name form &key working-directory)
   "Return `cort-deftest' compare with `string=' for NAME, FORM.
 If WORKING-DIRECTORY is non-nil, it should be string which specifies directory,
@@ -64,12 +74,7 @@ where the shell command will run.
                            `(:string-match-p
                              ,regexp
                              (keg-tests--string-trim-right
-                              (let ((default-directory
-                                      ,(if working-directory
-                                           (expand-file-name working-directory
-                                                             (file-name-directory load-file-name))
-                                         (file-name-directory load-file-name))))
-                                (shell-command-to-string ,(car elm))))))
+                              (nth 1 (shell-command-return-tuple ,(car elm))))))
                          (cdr elm)))
                       (cadr form)))))
 
@@ -88,16 +93,12 @@ where the shell command will run.
   '((:car-equal
      (let ((command (expand-file-name "bin/keg"))
            (default-directory (expand-file-name "./test-data")))
-       (with-temp-buffer
-         (list
-          (shell-command
-           (mapconcat #'shell-quote-argument
-                      (list command
-                            "version")
-                      " ")
-           nil (current-buffer))
-          (buffer-substring-no-properties (point-min) (point-max)))))
-     '(0 ""))))
+       (shell-command-return-tuple
+        (mapconcat #'shell-quote-argument
+                   (list command
+                         "version")
+                   " ")))
+     '(0 "" ""))))
 
 
 ;;; "keg help"
@@ -127,16 +128,12 @@ where the shell command will run.
   '((:car-equal
      (let ((command (expand-file-name "bin/keg"))
            (default-directory (expand-file-name "./test-data")))
-       (with-temp-buffer
-         (list
-          (shell-command
-           (mapconcat #'shell-quote-argument
-                      (list command
-                            "help")
-                      " ")
-           nil (current-buffer))
-          (buffer-substring-no-properties (point-min) (point-max)))))
-     '(0 ""))))
+       (shell-command-return-tuple
+        (mapconcat #'shell-quote-argument
+                   (list command
+                         "help")
+                   " ")))
+     '(0 "" ""))))
 
 
 ;;; "keg lint"
@@ -145,16 +142,12 @@ where the shell command will run.
   '((:car-equal
      (let ((command (expand-file-name "bin/keg"))
            (default-directory (expand-file-name "./test-data")))
-       (with-temp-buffer
-         (list
-          (shell-command
-           (mapconcat #'shell-quote-argument
-                      (list command
-                            "lint")
-                      " ")
-           nil (current-buffer))
-          (buffer-substring-no-properties (point-min) (point-max)))))
-     '(0 ""))))
+       (shell-command-return-tuple
+        (mapconcat #'shell-quote-argument
+                   (list command
+                         "lint")
+                   " ")))
+     '(0 "" ""))))
 
 ;; Inner functions
 
