@@ -91,8 +91,8 @@ where the shell command will run.
 
 (cort-deftest keg/version/without-argument/exit-code
   '((:car-equal
-     (let ((command (expand-file-name "bin/keg"))
-           (default-directory (expand-file-name "./test-data")))
+     (let* ((command (expand-file-name "bin/keg"))
+            (default-directory (expand-file-name "./test-data")))
        (shell-command-return-tuple
         (mapconcat #'shell-quote-argument
                    (list command
@@ -126,8 +126,8 @@ where the shell command will run.
 
 (cort-deftest keg/help/without-argument/exit-code
   '((:car-equal
-     (let ((command (expand-file-name "bin/keg"))
-           (default-directory (expand-file-name "./test-data")))
+     (let* ((command (expand-file-name "bin/keg"))
+            (default-directory (expand-file-name "./test-data")))
        (shell-command-return-tuple
         (mapconcat #'shell-quote-argument
                    (list command
@@ -140,8 +140,8 @@ where the shell command will run.
 
 (cort-deftest keg/lint/without-argument/exit-code
   '((:car-equal
-     (let ((command (expand-file-name "bin/keg"))
-           (default-directory (expand-file-name "./test-data")))
+     (let* ((command (expand-file-name "bin/keg"))
+            (default-directory (expand-file-name "./test-data")))
        (shell-command-return-tuple
         (mapconcat #'shell-quote-argument
                    (list command
