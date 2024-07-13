@@ -10,7 +10,7 @@ jobs:
     - uses: actions/checkout@v1
     - uses: purcell/setup-emacs@master
       with:
-        version: '29.1'
+        version: '29.4'
     - uses: conao3/setup-keg@master
     - name: Run lint
       run: 'keg lint'
@@ -37,6 +37,9 @@ jobs:
           - '28.1'
           - '28.2'
           - '29.1'
+          - '29.2'
+          - '29.3'
+          - '29.4'
           - 'snapshot'
         include:
           - emacs_version: 'snapshot'
@@ -50,6 +53,12 @@ jobs:
           - emacs_version: '24.4'
             only_keg: true
           - emacs_version: '24.5'
+            only_keg: true
+          - emacs_version: '25.1'
+            only_keg: true
+          - emacs_version: '25.2'
+            only_keg: true
+          - emacs_version: '25.3'
             only_keg: true
     steps:
     - uses: actions/checkout@v1
