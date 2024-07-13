@@ -343,18 +343,15 @@ USAGE: keg run [SCRIPT]"
   (unless noninteractive
     (error "`keg-command' is to be used only with --batch"))
   (let* ((opraw (car command-line-args-left))
-         (op (when opraw (intern opraw)))
+         (op (if opraw
+                 (intern opraw)
+               (if (file-exists-p "Keg")
+                   'install 'help)))
          (args (cdr command-line-args-left))
          (no-install (keg--no-install-p op keg-no-install-commands)))
     (when (not (memq op keg-global-commands))
         (keg-initialize))
     (cond
-     ((and
-       (memq op keg-global-commands)
-       (not (file-exists-p "Keg")))
-      (keg--princ "Missing Keg file in current directory")
-      (keg--princ "Exec `keg init' to create Keg file")
-      (keg--princ ""))
      ((and
        (not (memq op keg-global-commands))
        (not (file-exists-p "Keg")))
