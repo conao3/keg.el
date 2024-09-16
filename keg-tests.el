@@ -26,6 +26,7 @@
 ;;; Code:
 
 (require 'cort)
+(require 'cl-lib)
 (require 'keg)
 
 (defsubst keg-tests--string-trim-right (string &optional regexp)
@@ -36,8 +37,20 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
                            string)))
     (if i (substring string 0 i) string)))
 
-(defmacro cort-deftest-with-shell-command (name form)
+(defun shell-command-return-tuple (command)
+  "Run COMMAND and return (EXITCODE STDOUT STDERR)."
+  (with-temp-buffer
+    (let ((stdout (current-buffer)))
+      (with-temp-buffer
+        (let ((stderr (current-buffer)))
+          (list (shell-command command stdout stderr)
+                (with-current-buffer stdout (buffer-substring-no-properties (point-min) (point-max)))
+                (with-current-buffer stderr (buffer-substring-no-properties (point-min) (point-max)))))))))
+
+(cl-defmacro cort-deftest-with-shell-command (name form &key working-directory)
   "Return `cort-deftest' compare with `string=' for NAME, FORM.
+If WORKING-DIRECTORY is non-nil, it should be string which specifies directory,
+where the shell command will run.
 
   (cort-deftest-with-shell-command keg/subcommand-help
     '((\"keg version\"
@@ -52,7 +65,7 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
          (:string= \"keg-ansi.el\\nkeg-mode.el\\nkeg.el\"
                    (string-trim-right
                     (shell-command-to-string \"keg files\")))))"
-(declare (indent 1))
+  (declare (indent 1))
   `(cort-deftest ,name
      ',(apply #'nconc
               (mapcar (lambda (elm)
@@ -60,14 +73,38 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
                          (lambda (regexp)
                            `(:string-match-p
                              ,regexp
-                             (keg-tests--string-trim-right (shell-command-to-string ,(car elm)))))
+                             (keg-tests--string-trim-right
+                              (nth 1 (shell-command-return-tuple ,(car elm))))))
                          (cdr elm)))
                       (cadr form)))))
 
-(cort-deftest-with-shell-command keg/subcommand-simple
+(defsubst car-equal (cons1 cons2)
+  "Return non-nil when car of CONS1 equals car of CONS2."
+  (equal (car cons1) (car cons2)))
+
+
+;;; "keg version"
+
+(cort-deftest-with-shell-command keg/version/without-argument/text
   '(("./bin/keg version"
-     "Keg [0-9.]+ running on Emacs [0-9.]+")
-    ("./bin/keg help"
+     "Keg [0-9.]+ running on Emacs [0-9.]+")))
+
+(cort-deftest keg/version/without-argument/exit-code
+  '((:car-equal
+     (let* ((command (expand-file-name "bin/keg"))
+            (default-directory (expand-file-name "./test-data")))
+       (shell-command-return-tuple
+        (mapconcat #'shell-quote-argument
+                   (list command
+                         "version")
+                   " ")))
+     '(0 "" ""))))
+
+
+;;; "keg help"
+
+(cort-deftest-with-shell-command keg/help/without-argument/text
+  '(("./bin/keg help"
      "USAGE: keg \\[SUBCOMMAND\\] \\[OPTIONS\\.\\.\\.\\]$"
      "^ build \\[PACKAGE\\]$"
      "^ clean$"
@@ -86,6 +123,33 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
      "^ `?load-path'?$"                 ; Symbol is automatically quoted on Emacs 24.5>=.
      "^ run \\[SCRIPT\\]$"
      "^ version$")))
+
+(cort-deftest keg/help/without-argument/exit-code
+  '((:car-equal
+     (let* ((command (expand-file-name "bin/keg"))
+            (default-directory (expand-file-name "./test-data")))
+       (shell-command-return-tuple
+        (mapconcat #'shell-quote-argument
+                   (list command
+                         "help")
+                   " ")))
+     '(0 "" ""))))
+
+
+;;; "keg lint"
+
+(cort-deftest keg/lint/without-argument/exit-code
+  '((:car-equal
+     (let* ((command (expand-file-name "bin/keg"))
+            (default-directory (expand-file-name "./test-data")))
+       (shell-command-return-tuple
+        (mapconcat #'shell-quote-argument
+                   (list command
+                         "lint")
+                   " ")))
+     '(0 "" ""))))
+
+;; Inner functions
 
 (cort-deftest-generate keg/ansi-cl-macrolet :macroexpand
   '(

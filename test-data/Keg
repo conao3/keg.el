@@ -1,0 +1,3 @@
+(package
+ (example
+  (recipe . (keg :fetcher git :url "https://example.test/example.git"))))
