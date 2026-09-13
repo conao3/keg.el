@@ -14,14 +14,8 @@
       imports = [inputs.treefmt-nix.flakeModule];
 
       perSystem = {system, ...}: let
-        overlay = _: prev: let
-          emacs = prev.emacs30;
-        in {
-          inherit emacs;
-        };
         pkgs = import inputs.nixpkgs {
           inherit system;
-          overlays = [overlay];
         };
         keg = pkgs.writeShellScriptBin "keg" ''
           exec ${pkgs.emacs}/bin/emacs --batch -l ${./.}/bin/keg -- "$@"
