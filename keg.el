@@ -351,7 +351,7 @@ See `package-install'."
                            (apply #'keg-start-process command)
                          (keg-start-process-shell-command command))))
           (while (not (memq (process-status process) '(exit closed failed signal)))
-            (accept-process-output process))
+            (accept-process-output process 0 100))
           (setq status (process-exit-status process)))))
     status))
 
