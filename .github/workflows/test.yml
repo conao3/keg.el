@@ -37,6 +37,10 @@ jobs:
             only_keg: true
           - emacs_version: '25.3'
             only_keg: true
+          - emacs_version: '26.3'
+            skip_flycheck: true
+          - emacs_version: '27.2'
+            skip_flycheck: true
     steps:
     - uses: actions/checkout@v7.0.1
     - uses: purcell/setup-emacs@v8.0
@@ -53,7 +57,7 @@ jobs:
       run: 'keg run test-all-keg-mode'
 
     - name: Run tests of flycheck-keg
-      if: matrix.allow_failure != true && matrix.only_keg != true
+      if: matrix.allow_failure != true && matrix.only_keg != true && matrix.skip_flycheck != true
       run: 'keg run test-all-flycheck-keg'
 
     - name: Run tests (allow failure)
