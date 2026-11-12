@@ -520,9 +520,9 @@ cannot be determined."
                       (substring a 0 -3)
                       (substring b 0 -3))))))
     ;; ensure that the `main-file' is placed at the beginning of list.
-    (if (not (memq main-file res))
+    (if (not (member main-file res))
         res
-      (cons main-file (delq main-file res)))))
+      (cons main-file (delete main-file res)))))
 
 (defun keg-function (subcommand)
   "Return function symbol from SUBCOMMAND."

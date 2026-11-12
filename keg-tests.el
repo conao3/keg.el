@@ -187,6 +187,16 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
      '(("gnu" . "http://elpa.zilongshanren.com/gnu/")
        ("melpa" . "http://elpa.zilongshanren.com/melpa/")))))
 
+(cort-deftest-generate keg/elisp-files :equal
+  '(((cl-letf (((symbol-function 'keg-files)
+                (lambda (&optional _) '("foo-bar.el" "foo-mode.el" "README.org"))))
+       (keg-elisp-files 'foo-mode))
+     '("foo-mode.el" "foo-bar.el"))
+    ((cl-letf (((symbol-function 'keg-files)
+                (lambda (&optional _) '("foo-bar.el" "foo-baz.el"))))
+       (keg-elisp-files 'foo-mode))
+     '("foo-bar.el" "foo-baz.el"))))
+
 ;; (provide 'keg-tests)
 
 ;; Local Variables:
